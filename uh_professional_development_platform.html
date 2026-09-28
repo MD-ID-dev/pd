@@ -1,0 +1,3375 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UH Professional Development Hub | University of Hawaiʻi</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React, ReactDOM, Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts: Newsreader (Editorial Serif) & Inter (UI Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap" rel="stylesheet">
+
+    <!-- Custom Tailwind Configuration matching exact UH brand & screenshots -->
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['Newsreader', 'Georgia', 'serif'],
+              sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            },
+            colors: {
+              uh: {
+                navyTop: '#0E252A',
+                tealHero: '#18373E',
+                tealHeroDark: '#122D33',
+                tealBanner: '#16383D',
+                mintAccent: '#A2D8CB',
+                goldBtn: '#E6B85E',
+                goldBtnHover: '#DCAE52',
+                goldBorder: '#C5A566',
+                creamStacked: '#E8E3D7',
+                ribbonBg: '#F7F5F0',
+                sidebar: '#0B252E',
+                sidebarHover: '#13333E',
+                sidebarActive: '#183F4C',
+                ctaGreen: '#224E43'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <style>
+      /* Accessibility Focus Rings using requested #0E4D56 */
+      :focus-visible {
+        outline: 3px solid #0E4D56 !important;
+        outline-offset: 2px !important;
+      }
+      .high-contrast :focus-visible {
+        outline: 4px solid #FFFF00 !important;
+        outline-offset: 3px !important;
+      }
+      .high-contrast {
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
+      }
+      .high-contrast .hc-card {
+        background-color: #121212 !important;
+        border: 2px solid #FFFFFF !important;
+        color: #FFFFFF !important;
+      }
+      .high-contrast button {
+        border: 1px solid #FFFFFF !important;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      
+      /* Global text selection with hover highlight color */
+      ::selection {
+        background-color: #0E4D56;
+        color: #FFFFFF;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #E2E8F0;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #94A3B8;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #0E4D56;
+      }
+
+      @keyframes carouselProgressAnim {
+        from { width: 0%; }
+        to { width: 100%; }
+      }
+      .carousel-progress-active {
+        animation: carouselProgressAnim 5.5s linear forwards;
+      }
+      .carousel-progress-paused {
+        animation-play-state: paused;
+      }
+
+      /* Fade in animation for tab content switching */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+    </style>
+</head>
+<body class="h-full bg-[#FAF8F5] text-slate-900 font-sans antialiased selection:bg-[#0E4D56] selection:text-white">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+      const UH_CAMPUSES = [
+        "All campuses",
+        "UH System",
+        "UH Mānoa",
+        "UH Hilo",
+        "UH West Oʻahu",
+        "Hawaiʻi CC",
+        "Honolulu CC",
+        "Kapiʻolani CC",
+        "Kauaʻi CC",
+        "Leeward CC",
+        "UH Maui College",
+        "Windward CC"
+      ];
+
+      const UH_TOPICS = [
+        "All topics",
+        "Generative AI",
+        "Assessment",
+        "Active Learning",
+        "Productivity",
+        "Accessibility / ADA",
+        "Lamakū / LMS",
+        "Native Hawaiian Place-Based",
+        "Online Teaching",
+        "CyberHygiene & Security"
+      ];
+
+      const UH_FORMATS = [
+        "All formats",
+        "Hybrid (online & in-person)",
+        "Online sync (live)",
+        "In-person (on campus)",
+        "Online async (self-paced)"
+      ];
+
+      const PREFILLED_KEYWORDS = [
+        "Accessibility",
+        "Active Learning",
+        "Assessment",
+        "Generative AI",
+        "Lamakū",
+        "Productivity",
+        "Campus Instructional Design Office",
+        "Center for Excellence in Learning, Teaching and Technology (CELTT)",
+        "Center for Teaching Excellence",
+        "CyberHygiene & Security",
+        "Google Gemini & NotebookLM",
+        "Native Hawaiian Place-Based",
+        "Online Teaching",
+        "OER (Open Educational Resources)",
+        "WCAG 2.1 AA Screen Reader"
+      ];
+
+      function getCampusTheme(campus = "") {
+        const c = campus.toLowerCase();
+        if (c.includes("mānoa") || c.includes("manoa")) {
+          return {
+            primary: "#024731",
+            border: "#024731",
+            text: "#024731",
+            lightBg: "#EBF5F0",
+            name: "UH Mānoa"
+          };
+        }
+        if (c.includes("hilo")) {
+          return {
+            primary: "#A71930",
+            border: "#A71930",
+            text: "#A71930",
+            lightBg: "#FDF0F2",
+            name: "UH Hilo"
+          };
+        }
+        if (c.includes("west o")) {
+          return {
+            primary: "#6B1D2F",
+            border: "#6B1D2F",
+            text: "#6B1D2F",
+            lightBg: "#FAF0F2",
+            name: "UH West Oʻahu"
+          };
+        }
+        if (c.includes("leeward")) {
+          return {
+            primary: "#0C2340",
+            border: "#0C2340",
+            text: "#0C2340",
+            lightBg: "#EDF3FA",
+            name: "Leeward CC"
+          };
+        }
+        return {
+          primary: "#C5A566",
+          border: "#C5A566",
+          text: "#8A6D3B",
+          lightBg: "#FDFBF5",
+          name: "UH System"
+        };
+      }
+
+      function CampusSeal({ campus, size = 44, className = "" }) {
+        const c = campus || "UH System";
+
+        if (c.includes("Mānoa") || c.includes("manoa")) {
+          return (
+            <svg width={size} height={size} viewBox="0 0 100 100" className={`rounded-full flex-shrink-0 ${className}`} aria-label="UH Mānoa Seal">
+              <circle cx="50" cy="50" r="48" fill="#FFFFFF" stroke="#024731" strokeWidth="3" />
+              <circle cx="50" cy="50" r="43" fill="#024731" stroke="#C5A566" strokeWidth="1" />
+              <circle cx="50" cy="50" r="39" fill="none" stroke="#FFFFFF" strokeWidth="0.8" strokeDasharray="2,2" />
+              <path d="M 28 65 Q 50 35 72 65" fill="none" stroke="#C5A566" strokeWidth="3.5" strokeLinecap="round" />
+              <path d="M 33 65 Q 50 42 67 65" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
+              <path d="M 40 70 L 50 56 L 60 70 Z" fill="#043223" stroke="#C5A566" strokeWidth="1" />
+              <text x="50" y="24" textAnchor="middle" fill="#FFFFFF" fontSize="7.5" fontWeight="bold" fontFamily="sans-serif" letterSpacing="0.8">UH MĀNOA</text>
+              <text x="50" y="86" textAnchor="middle" fill="#C5A566" fontSize="6.5" fontWeight="bold" fontFamily="serif">1907</text>
+            </svg>
+          );
+        }
+
+        if (c.includes("Hilo")) {
+          return (
+            <svg width={size} height={size} viewBox="0 0 100 100" className={`rounded-full flex-shrink-0 ${className}`} aria-label="UH Hilo Seal">
+              <circle cx="50" cy="50" r="48" fill="#FFFFFF" stroke="#A71930" strokeWidth="3" />
+              <circle cx="50" cy="50" r="43" fill="#A71930" stroke="#C5A566" strokeWidth="1" />
+              <polygon points="50,38 28,68 72,68" fill="#FFFFFF" />
+              <polygon points="50,42 34,68 66,68" fill="#1A1A1A" />
+              <circle cx="50" cy="35" r="5" fill="#E6B85E" />
+              <text x="50" y="22" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="bold" fontFamily="sans-serif" letterSpacing="1">UH HILO</text>
+              <text x="50" y="86" textAnchor="middle" fill="#E6B85E" fontSize="6.5" fontWeight="bold" fontFamily="serif">KĀLĀHUA</text>
+            </svg>
+          );
+        }
+
+        if (c.includes("West O")) {
+          return (
+            <svg width={size} height={size} viewBox="0 0 100 100" className={`rounded-full flex-shrink-0 ${className}`} aria-label="UH West Oʻahu Seal">
+              <circle cx="50" cy="50" r="48" fill="#FFFFFF" stroke="#6B1D2F" strokeWidth="3" />
+              <circle cx="50" cy="50" r="43" fill="#6B1D2F" stroke="#C5A566" strokeWidth="1" />
+              <path d="M 30 58 Q 50 42 70 58 Q 50 66 30 58 Z" fill="#C5A566" />
+              <circle cx="50" cy="46" r="3.5" fill="#FFFFFF" />
+              <text x="50" y="24" textAnchor="middle" fill="#FFFFFF" fontSize="7" fontWeight="bold" fontFamily="sans-serif" letterSpacing="0.8">WEST OʻAHU</text>
+              <text x="50" y="86" textAnchor="middle" fill="#C5A566" fontSize="6.5" fontWeight="bold" fontFamily="serif">PUEO</text>
+            </svg>
+          );
+        }
+
+        if (c.includes("Leeward")) {
+          return (
+            <svg width={size} height={size} viewBox="0 0 100 100" className={`rounded-full flex-shrink-0 ${className}`} aria-label="Leeward CC Seal">
+              <circle cx="50" cy="50" r="48" fill="#FFFFFF" stroke="#0C2340" strokeWidth="3" />
+              <circle cx="50" cy="50" r="43" fill="#0C2340" stroke="#C5A566" strokeWidth="1" />
+              <path d="M 50 32 C 40 42 34 52 46 66 C 48 68 50 68 50 68 C 50 68 52 68 54 66 C 66 52 60 42 50 32 Z" fill="#C5A566" />
+              <text x="50" y="22" textAnchor="middle" fill="#FFFFFF" fontSize="7.5" fontWeight="bold" fontFamily="sans-serif">LEEWARD CC</text>
+              <text x="50" y="86" textAnchor="middle" fill="#C5A566" fontSize="6.5" fontWeight="bold">ʻULU</text>
+            </svg>
+          );
+        }
+
+        return (
+          <svg width={size} height={size} viewBox="0 0 120 120" className={`rounded-full flex-shrink-0 ${className}`} aria-label="University of Hawaiʻi Seal">
+            <circle cx="60" cy="60" r="57" fill="#FAF8F5" stroke="#9A2E20" strokeWidth="2.5" />
+            <circle cx="60" cy="60" r="51" fill="#FFFFFF" stroke="#9A2E20" strokeWidth="1.2" />
+            <circle cx="60" cy="60" r="47" fill="none" stroke="#9A2E20" strokeWidth="0.8" strokeDasharray="1.5,1.5" />
+            <path id={`seal-path-${size}`} d="M 22 60 A 38 38 0 0 1 98 60" fill="none" />
+            <text fill="#9A2E20" fontSize="7.5" fontWeight="900" fontFamily="serif" letterSpacing="1.2">
+              <textPath href={`#seal-path-${size}`} startOffset="50%" textAnchor="middle">
+                UNIVERSITY OF HAWAIʻI
+              </textPath>
+            </text>
+            <g transform="translate(42, 36) scale(0.6)">
+              <path d="M 30 10 L 30 0 M 20 13 L 13 5 M 40 13 L 47 5 M 14 24 L 4 20 M 46 24 L 56 20" stroke="#9A2E20" strokeWidth="2.2" strokeLinecap="round" />
+              <path d="M 20 22 Q 30 12 40 22 Q 45 32 30 40 Q 15 32 20 22 Z" fill="#9A2E20" />
+              <path d="M 24 24 Q 30 17 36 24 Q 38 30 30 35 Q 22 30 24 24 Z" fill="#FAF8F5" />
+              <path d="M 27 38 L 33 38 L 31 66 L 29 66 Z" fill="#9A2E20" />
+              <rect x="25" y="44" width="10" height="2" fill="#FAF8F5" />
+              <rect x="26" y="52" width="8" height="2" fill="#FAF8F5" />
+            </g>
+            <rect x="42" y="77" width="36" height="8" rx="2" fill="#9A2E20" />
+            <text x="60" y="83.5" textAnchor="middle" fill="#FFFFFF" fontSize="5.5" fontWeight="bold" fontFamily="sans-serif" letterSpacing="1">
+              MALAMALAMA 1907
+            </text>
+          </svg>
+        );
+      }
+
+      const INITIAL_EVENTS = [
+        {
+          id: "evt-sep-02",
+          month: "September 2026",
+          monthKey: "2026-09",
+          dateNum: "02",
+          dayName: "WED",
+          dateFull: "September 2, 2026",
+          title: "AI for Work: Build Your First Gemini Gem",
+          campus: "UH Mānoa",
+          dept: "Center for Teaching Excellence",
+          openScope: "Open to UH Mānoa",
+          statusSubtitle: "16 in-person seats left",
+          delivery_mode: "hybrid",
+          deliveryLabel: "Hybrid (online & in-person)",
+          description: "Create a reusable AI collaborator for a real teaching, research, or administrative workflow.",
+          timeRange: "1:00 PM - 2:30 PM HST",
+          location_details: "Kuykendall 106 Events Room + Zoom",
+          zoom_url: "https://hawaii.zoom.us/j/98765432101",
+          pageLink: "View event page: AI for Work: Build Your First Gemini Gem",
+          capacity_in_person: 20,
+          registered_in_person: 4,
+          capacity_virtual: 50,
+          registered_virtual: 26,
+          pedagogy_tags: ["Generative AI", "Productivity", "Active Learning"],
+          is_series: false,
+          is_systemwide: true,
+          owner_email: "cte@hawaii.edu",
+          owner_name: "Dr. Elena Vance"
+        },
+        {
+          id: "evt-sep-11",
+          month: "September 2026",
+          monthKey: "2026-09",
+          dateNum: "11",
+          dayName: "FRI",
+          dateFull: "September 11, 2026",
+          title: "Assessment for Learning Institute",
+          campus: "Leeward CC",
+          dept: "Faculty Senate PD",
+          openScope: "Open to Leeward CC",
+          statusSubtitle: "Almost full",
+          delivery_mode: "f2f",
+          deliveryLabel: "In-person (on campus)",
+          description: "A four-part series for designing transparent, authentic assessments with actionable feedback.",
+          timeRange: "9:00 AM - 12:00 PM HST",
+          location_details: "Learning Commons, Room 108",
+          zoom_url: "",
+          pageLink: "View event page: Assessment for Learning Institute",
+          capacity_in_person: 25,
+          registered_in_person: 22,
+          capacity_virtual: 0,
+          registered_virtual: 0,
+          pedagogy_tags: ["Assessment", "Active Learning", "★ 4-session series - RSVP once"],
+          is_series: true,
+          series_sessions: [
+            { num: 1, title: "Foundations of Transparent Assessment", date: "Sep 11, 2026", time: "9:00 AM - 12:00 PM HST", location: "Room 108" },
+            { num: 2, title: "Formative Checkpoints & Peer Feedback", date: "Sep 18, 2026", time: "9:00 AM - 12:00 PM HST", location: "Room 108" },
+            { num: 3, title: "Authentic Rubrics in Lamakū", date: "Sep 25, 2026", time: "9:00 AM - 12:00 PM HST", location: "Room 108" },
+            { num: 4, title: "Assessment Showcase & Iteration", date: "Oct 2, 2026", time: "9:00 AM - 12:00 PM HST", location: "Room 108" }
+          ],
+          is_systemwide: false,
+          owner_email: "leeward-pd@hawaii.edu",
+          owner_name: "Prof. Keanu Silva"
+        },
+        {
+          id: "evt-sep-18",
+          month: "September 2026",
+          monthKey: "2026-09",
+          dateNum: "18",
+          dayName: "FRI",
+          dateFull: "September 18, 2026",
+          title: "Small Teaching, Big Impact",
+          campus: "UH Hilo",
+          dept: "Kūlana Academic Success Center",
+          openScope: "Open to UH Hilo",
+          statusSubtitle: "",
+          delivery_mode: "online_sync",
+          deliveryLabel: "Online sync (live)",
+          description: "Explore three evidence-based changes that improve engagement without redesigning your course.",
+          timeRange: "11:00 AM - 12:00 PM HST",
+          location_details: "Zoom - link provided after RSVP",
+          zoom_url: "https://hawaii.zoom.us/j/8821903451",
+          pageLink: "View event page: Small Teaching, Big Impact",
+          capacity_in_person: 0,
+          registered_in_person: 0,
+          capacity_virtual: 40,
+          registered_virtual: 28,
+          pedagogy_tags: ["Active Learning", "Assessment"],
+          is_series: false,
+          is_systemwide: true,
+          owner_email: "hilo-pd@hawaii.edu",
+          owner_name: "Prof. Malia Kahale"
+        },
+        {
+          id: "evt-sep-25",
+          month: "September 2026",
+          monthKey: "2026-09",
+          dateNum: "25",
+          dayName: "FRI",
+          dateFull: "September 25, 2026",
+          title: "Innovation Playground: Fall '26 Updates: Gemini, NotebookLM, Vids",
+          campus: "UH System",
+          dept: "UH Online Innovation Center (UHOIC)",
+          openScope: "Open to all UH campuses",
+          statusSubtitle: "",
+          delivery_mode: "online_sync",
+          deliveryLabel: "Online sync (live)",
+          description: "Explore current Gemini, NotebookLM, and Google Vids features for instruction, student learning, content creation, and everyday productivity.",
+          timeRange: "10:00 AM–11:00 AM HST",
+          location_details: "Zoom - link provided after RSVP",
+          zoom_url: "https://hawaii.zoom.us/j/7712398412",
+          pageLink: "View event page: Innovation Playground: Fall '26 Updates: Gemini, NotebookLM, Vids",
+          capacity_in_person: 0,
+          registered_in_person: 0,
+          capacity_virtual: 100,
+          registered_virtual: 65,
+          pedagogy_tags: ["Generative AI", "Productivity", "Active Learning"],
+          is_series: false,
+          is_systemwide: true,
+          owner_email: "uhoic@hawaii.edu",
+          owner_name: "UHOIC Team"
+        },
+        {
+          id: "evt-oct-05",
+          month: "October 2026",
+          monthKey: "2026-10",
+          dateNum: "05",
+          dayName: "MON",
+          dateFull: "October 5, 2026",
+          title: "WCAG 2.1 AA Digital Accessibility & Screen Reader Audit",
+          campus: "UH Mānoa",
+          dept: "Center for Teaching Excellence",
+          openScope: "Open to all UH campuses",
+          statusSubtitle: "12 seats left",
+          delivery_mode: "online_sync",
+          deliveryLabel: "Online sync (live)",
+          description: "Hands-on audit workshop for faculty to test online course materials, syllabus documents, and slides with screen readers.",
+          timeRange: "1:00 PM - 2:30 PM HST",
+          location_details: "Zoom - link provided after RSVP",
+          zoom_url: "https://hawaii.zoom.us/j/4433221199",
+          pageLink: "View event page: WCAG 2.1 AA Accessibility",
+          capacity_in_person: 0,
+          registered_in_person: 0,
+          capacity_virtual: 60,
+          registered_virtual: 48,
+          pedagogy_tags: ["Accessibility / ADA", "Online Teaching"],
+          is_series: false,
+          is_systemwide: true,
+          owner_email: "cte@hawaii.edu",
+          owner_name: "Elena Vance"
+        },
+        {
+          id: "evt-oct-12",
+          month: "October 2026",
+          monthKey: "2026-10",
+          dateNum: "12",
+          dayName: "MON",
+          dateFull: "October 12, 2026",
+          title: "Lamakū Mastery: Advanced Rubrics & Authentic Student Workflows",
+          campus: "UH West Oʻahu",
+          dept: "Campus ID Offices",
+          openScope: "Open to UH West Oʻahu & CCs",
+          statusSubtitle: "Limited seats",
+          delivery_mode: "hybrid",
+          deliveryLabel: "Hybrid (online & in-person)",
+          description: "Optimize assignment feedback loops, peer evaluation rubrics, and gradebook integration in the Lamakū LMS.",
+          timeRange: "10:00 AM - 11:30 AM HST",
+          location_details: "Campus Center C-208 & Zoom",
+          zoom_url: "https://hawaii.zoom.us/j/3344556677",
+          pageLink: "View event page: Lamakū Mastery",
+          capacity_in_person: 20,
+          registered_in_person: 18,
+          capacity_virtual: 40,
+          registered_virtual: 29,
+          pedagogy_tags: ["Lamakū / LMS", "Assessment", "Active Learning"],
+          is_series: false,
+          is_systemwide: true,
+          owner_email: "id-westoahu@hawaii.edu",
+          owner_name: "Kalei Wong"
+        },
+        {
+          id: "evt-oct-19",
+          month: "October 2026",
+          monthKey: "2026-10",
+          dateNum: "19",
+          dayName: "MON",
+          dateFull: "October 19, 2026",
+          title: "Aloha ʻĀina & Native Hawaiian Place-Based Pedagogy in STEM",
+          campus: "Hawaiʻi CC",
+          dept: "OFDAS & Indigenous Faculty Network",
+          openScope: "Open to Hawaiʻi CC & Hilo",
+          statusSubtitle: "Almost full",
+          delivery_mode: "f2f",
+          deliveryLabel: "In-person (on campus)",
+          description: "Grounding science and math curricula in ʻĀina-based learning, traditional lunar calendars, and local stewardship contexts.",
+          timeRange: "9:00 AM - 12:00 PM HST",
+          location_details: "Manono Campus, Hale 388",
+          zoom_url: "",
+          pageLink: "View event page: Aloha ʻĀina STEM",
+          capacity_in_person: 25,
+          registered_in_person: 21,
+          capacity_virtual: 0,
+          registered_virtual: 0,
+          pedagogy_tags: ["Native Hawaiian Place-Based", "Active Learning"],
+          is_series: false,
+          is_systemwide: false,
+          owner_email: "hawaiicc-pd@hawaii.edu",
+          owner_name: "Prof. Leilani Kahele"
+        },
+        {
+          id: "evt-nov-06",
+          month: "November 2026",
+          monthKey: "2026-11",
+          dateNum: "06",
+          dayName: "FRI",
+          dateFull: "November 6, 2026",
+          title: "ITS CyberHygiene & FERPA Compliance in Online Course Tools",
+          campus: "UH System",
+          dept: "Information Technology Services (ITS)",
+          openScope: "Open to all UH campuses",
+          statusSubtitle: "Open registration",
+          delivery_mode: "online_sync",
+          deliveryLabel: "Online sync (live)",
+          description: "Essential data privacy standards, secure grade file management, and zero-trust guidelines for instructors using external edtech tools.",
+          timeRange: "10:00 AM - 11:30 AM HST",
+          location_details: "Zoom - link provided after RSVP",
+          zoom_url: "https://hawaii.zoom.us/j/9988112233",
+          pageLink: "View event page: ITS CyberHygiene",
+          capacity_in_person: 0,
+          registered_in_person: 0,
+          capacity_virtual: 250,
+          registered_virtual: 88,
+          pedagogy_tags: ["CyberHygiene & Security", "Productivity"],
+          is_series: false,
+          is_systemwide: true,
+          owner_email: "its-sec@hawaii.edu",
+          owner_name: "ITS Security Team"
+        },
+        {
+          id: "evt-dec-04",
+          month: "December 2026",
+          monthKey: "2026-12",
+          dateNum: "04",
+          dayName: "FRI",
+          dateFull: "December 4, 2026",
+          title: "UH Fall '26 Teaching & Learning Innovations Showcase",
+          campus: "UH System",
+          dept: "UHOIC & System CTE Council",
+          openScope: "Open to all UH campuses",
+          statusSubtitle: "Reception included",
+          delivery_mode: "hybrid",
+          deliveryLabel: "Hybrid (online & in-person)",
+          description: "Cross-campus lightning talks celebrating innovative course redesigns, AI pilots, and student-centered teaching achievements.",
+          timeRange: "1:00 PM - 3:30 PM HST",
+          location_details: "Campus Center Ballroom & Zoom Stream",
+          zoom_url: "https://hawaii.zoom.us/j/5544332211",
+          pageLink: "View event page: Teaching Innovations Showcase",
+          capacity_in_person: 80,
+          registered_in_person: 52,
+          capacity_virtual: 300,
+          registered_virtual: 194,
+          pedagogy_tags: ["Active Learning", "Productivity", "Generative AI"],
+          is_series: false,
+          is_systemwide: true,
+          owner_email: "uhoic@hawaii.edu",
+          owner_name: "UHOIC Coordinator"
+        }
+      ];
+
+      const INITIAL_RESOURCES = [
+        { 
+          id: 'res1', 
+          category: 'Policy & Responsible Use', 
+          title: "UH AI Tool Decision Guide", 
+          url: "https://www.hawaii.edu/its/ai/",
+          provider: "Information Technology Services (ITS)",
+          audience: "UH faculty and staff",
+          access: "Public",
+          tags: ["Responsible AI", "Privacy", "Productivity"],
+          badge: "Guide"
+        },
+        { 
+          id: 'res2', 
+          category: 'Tools & Licenses', 
+          title: "Google AI Pro for Education", 
+          url: "https://www.hawaii.edu/its/ai/",
+          provider: "Information Technology Services (ITS)",
+          audience: "Eligible UH faculty and staff",
+          access: "UH login required",
+          tags: ["Generative AI", "Gemini", "Productivity"],
+          badge: "Licensed tool"
+        },
+        { 
+          id: 'res3', 
+          category: 'Teaching & Learning', 
+          title: "UHOIC Artificial Intelligence Resources", 
+          url: "https://www.uhonline.hawaii.edu/uhoic/resources-page/artificial-intelligence-ai/",
+          provider: "UH Online Innovation Center (UHOIC)",
+          audience: "UH faculty, instructors, and staff",
+          access: "Public",
+          tags: ["Generative AI", "Teaching", "Assessment"],
+          badge: "Resource hub"
+        },
+        { 
+          id: 'res4', 
+          category: 'Policy & Responsible Use', 
+          title: "UH AI Recommendations", 
+          url: "https://www.uhonline.hawaii.edu/uhoic/resources-page/artificial-intelligence-ai/",
+          provider: "UH Online Innovation Center (UHOIC)",
+          audience: "UH faculty and instructors",
+          access: "Public",
+          tags: ["Responsible AI", "Teaching", "Assessment"],
+          badge: "Guide"
+        },
+        { 
+          id: 'res5', 
+          category: 'Strategy & Community', 
+          title: "UH OneAI Hub", 
+          url: "https://hawaii.edu/oneai/",
+          provider: "UH System",
+          audience: "UH community",
+          access: "Public",
+          tags: ["Strategy", "Community of Practice"],
+          badge: "Resource hub"
+        },
+        { 
+          id: 'res6', 
+          category: 'Policy & Responsible Use', 
+          title: "AI Guidelines Slide Deck", 
+          url: "https://drive.google.com/file/d/1x4h4aneBq2aIIHk-v9FcxS5WGuyNrc9Z/view",
+          provider: "Information Technology Services (ITS)",
+          audience: "UH community",
+          access: "UH login required",
+          tags: ["Responsible AI", "Presentation"],
+          badge: "Document"
+        },
+        { 
+          id: 'res7', 
+          category: 'Strategy & Community', 
+          title: "Tableau GenAI Survey Dashboard", 
+          url: "https://public.tableau.com/app/profile/kelli.okumura/viz/shared/9KCFJMJK3",
+          provider: "Institutional Research",
+          audience: "UH community",
+          access: "Public",
+          tags: ["Data", "Survey Results"],
+          badge: "Dashboard"
+        }
+      ];
+
+      const INITIAL_PROGRAMS = [
+        { 
+          id: 'prog1', 
+          category: 'AI Learning', 
+          title: "AI Explorer Badge", 
+          url: "https://www.uhonline.hawaii.edu/uhoic/ai-explorer-badge/",
+          provider: "UH Online Innovation Center (UHOIC)",
+          audience: "UH faculty and staff",
+          access: "Public",
+          tags: ["Generative AI", "Professional growth"],
+          badge: "Badge program",
+          description: "Explore the UHOIC badge pathway for building practical AI knowledge through learning, application, and reflection."
+        },
+        { 
+          id: 'prog2', 
+          category: 'AI Learning', 
+          title: "AI for Hawaiʻi", 
+          url: "https://aiforhi.hawaii.edu/",
+          provider: "AI for Hawaiʻi",
+          audience: "Hawaiʻi educators and professionals",
+          access: "Public",
+          tags: ["Generative AI", "Professional growth"],
+          badge: "Program hub",
+          description: "Visit the AI for Hawaiʻi site for current professional learning opportunities and program information."
+        },
+        { 
+          id: 'prog3', 
+          category: 'Online Teaching', 
+          title: "UHCC Online Teaching PD", 
+          url: "https://uhcc.hawaii.edu/ovpcc/resources/online-teaching/professional-development-programs.php",
+          provider: "UH Community Colleges",
+          audience: "UHCC faculty and staff",
+          access: "Public",
+          tags: ["Online Teaching", "Assessment", "Lamakū / LMS"],
+          badge: "Program directory",
+          description: "Explore ongoing online teaching professional development cohorts and opportunities offered by the UH Community Colleges."
+        },
+        { 
+          id: 'prog4', 
+          category: 'AI Learning', 
+          title: "AI Guidelines & Tools", 
+          url: "https://docs.google.com/document/d/1U56cNo8r0leWGvSBKs9EBh_BKvkXa5zgVik4PTb49PI/edit?tab=t.0#heading=h.4206e2b8g3mi",
+          provider: "UH System",
+          audience: "UH faculty and staff",
+          access: "Public",
+          tags: ["Generative AI", "Teaching", "Assessment"],
+          badge: "Shared document",
+          description: "Collaborative and dynamic Google Doc outlining ongoing discussions and tools related to AI in teaching across the UH system."
+        }
+      ];
+
+      function App() {
+        const orderedMonths = ["September 2026", "October 2026", "November 2026", "December 2026"];
+
+        const [events, setEvents] = React.useState(INITIAL_EVENTS);
+        const [resources, setResources] = React.useState(INITIAL_RESOURCES);
+        const [programs, setPrograms] = React.useState(INITIAL_PROGRAMS);
+
+        const [userRole, setUserRole] = React.useState("contributor");
+        const [plannerModeActive, setPlannerModeActive] = React.useState(true);
+        const [currentView, setCurrentView] = React.useState("catalog");
+        const [plannerActivePage, setPlannerActivePage] = React.useState("overview");
+        
+        // Passkey / Password Access Gate State
+        const [isPlannerUnlocked, setIsPlannerUnlocked] = React.useState(false);
+        const [showPasswordModal, setShowPasswordModal] = React.useState(false);
+        const [passwordInput, setPasswordInput] = React.useState("");
+        const [passwordError, setPasswordError] = React.useState("");
+        const [pendingPlannerTarget, setPendingPlannerTarget] = React.useState("overview");
+
+        const [userProfile, setUserProfile] = React.useState({
+          name: "M. Designer",
+          roleLabel: "Approved contributor",
+          unit: "UH Online Innovation Center (UHOIC)",
+          email: "mdesigner@hawaii.edu",
+          campuses: ["UH System", "UH Mānoa"]
+        });
+
+        // 3-Tab Hub State: "events", "programs", "resources"
+        const [hubTab, setHubTab] = React.useState("events");
+
+        // Event Search & Filter State
+        const [searchQuery, setSearchQuery] = React.useState("");
+        const [isSearchDropdownOpen, setIsSearchDropdownOpen] = React.useState(false);
+        const [selectedCampus, setSelectedCampus] = React.useState("All campuses");
+        const [selectedTopic, setSelectedTopic] = React.useState("All topics");
+        const [selectedFormat, setSelectedFormat] = React.useState("All formats");
+        const [quickChoice, setQuickChoice] = React.useState(null);
+        const [showMoreFilters, setShowMoreFilters] = React.useState(false);
+        const [sortOrder, setSortOrder] = React.useState("soonest");
+
+        // Resource Filter State
+        const [resSearch, setResSearch] = React.useState("");
+        const [resProvider, setResProvider] = React.useState("All campuses");
+        const [resCategory, setResCategory] = React.useState("All categories");
+        const [resType, setResType] = React.useState("All types");
+        const [resAccess, setResAccess] = React.useState("All access");
+
+        // Program Filter State
+        const [progSearch, setProgSearch] = React.useState("");
+        const [progProvider, setProgProvider] = React.useState("All campuses");
+        const [progCategory, setProgCategory] = React.useState("All categories");
+        const [progType, setProgType] = React.useState("All types");
+        const [progAccess, setProgAccess] = React.useState("All access");
+
+        const [collapsedMonths, setCollapsedMonths] = React.useState({
+          "September 2026": false,
+          "October 2026": true,
+          "November 2026": true,
+          "December 2026": true
+        });
+
+        const [carouselIndex, setCarouselIndex] = React.useState(0);
+        const [isAutoplay, setIsAutoplay] = React.useState(true);
+        const [isCarouselHovered, setIsCarouselHovered] = React.useState(false);
+        const [touchStartX, setTouchStartX] = React.useState(null);
+
+        const carouselEvents = events.slice(0, 4);
+        const currentCarouselEvent = carouselEvents[carouselIndex] || carouselEvents[0];
+
+        React.useEffect(() => {
+          if (!isAutoplay || isCarouselHovered) return;
+          const timer = setTimeout(() => {
+            setCarouselIndex(prev => (prev + 1) % carouselEvents.length);
+          }, 5500);
+          return () => clearTimeout(timer);
+        }, [isAutoplay, isCarouselHovered, carouselIndex, carouselEvents.length]);
+
+        const handleTouchStart = (e) => {
+          setTouchStartX(e.touches[0].clientX);
+        };
+
+        const handleTouchEnd = (e) => {
+          if (touchStartX === null) return;
+          const touchEndX = e.changedTouches[0].clientX;
+          const diff = touchStartX - touchEndX;
+          if (diff > 50) {
+            setCarouselIndex(prev => (prev + 1) % carouselEvents.length);
+          } else if (diff < -50) {
+            setCarouselIndex(prev => (prev === 0 ? carouselEvents.length - 1 : prev - 1));
+          }
+          setTouchStartX(null);
+        };
+
+        const [recentlyViewed, setRecentlyViewed] = React.useState({
+          id: "evt-sep-18",
+          title: "Small Teaching, Big Impact",
+          date: "Sep 18, 2026 · 11:00 AM HST",
+          campus: "UH Hilo"
+        });
+
+        const [myRsvps, setMyRsvps] = React.useState([
+          {
+            eventId: "evt-sep-02",
+            eventTitle: "AI for Work: Build Your First Gemini Gem",
+            dateStr: "Sep 2, 2026",
+            timeRange: "1:00 PM - 2:30 PM HST",
+            type: "virtual",
+            zoomUrl: "https://hawaii.zoom.us/j/98765432101",
+            location: "Kuykendall 106 & Zoom"
+          }
+        ]);
+
+        const [selectedEventModal, setSelectedEventModal] = React.useState(null);
+        const [rsvpType, setRsvpType] = React.useState("virtual");
+        const [rsvpConfirmedData, setRsvpConfirmedData] = React.useState(null);
+        const [showRsvpsDrawer, setShowRsvpsDrawer] = React.useState(false);
+
+        const [fontSize, setFontSize] = React.useState(100);
+        const [highContrast, setHighContrast] = React.useState(false);
+        const [announcement, setAnnouncement] = React.useState("");
+        const [toast, setToast] = React.useState(null);
+
+        const showToast = (message, type = "success") => {
+          setToast({ message, type });
+          setTimeout(() => setToast(null), 4500);
+          setAnnouncement(message);
+        };
+
+        const requestPlannerAccess = (targetSubPage = "overview") => {
+          if (isPlannerUnlocked) {
+            setPlannerActivePage(targetSubPage);
+            setCurrentView("planner");
+          } else {
+            setPendingPlannerTarget(targetSubPage);
+            setPasswordError("");
+            setPasswordInput("");
+            setShowPasswordModal(true);
+          }
+        };
+
+        const handlePasswordSubmit = (e) => {
+          e.preventDefault();
+          if (passwordInput.trim() === "UHIDs") {
+            setIsPlannerUnlocked(true);
+            setShowPasswordModal(false);
+            setPlannerActivePage(pendingPlannerTarget);
+            setCurrentView("planner");
+            showToast("Planner Access Granted! Passkey verified.", "success");
+          } else {
+            setPasswordError("Incorrect passkey. Please enter the valid planner password.");
+          }
+        };
+
+        const scrollToHubTab = (tabId) => {
+          setHubTab(tabId);
+          if (currentView !== "catalog") {
+            setCurrentView("catalog");
+            setTimeout(() => {
+              document.getElementById("discovery-catalog")?.scrollIntoView({ behavior: 'smooth' });
+            }, 150);
+          } else {
+            document.getElementById("discovery-catalog")?.scrollIntoView({ behavior: 'smooth' });
+          }
+        };
+
+        // Event Filtering
+        const hasActiveEventFilters = Boolean(
+          searchQuery.trim() !== "" || 
+          selectedCampus !== "All campuses" || 
+          selectedTopic !== "All topics" || 
+          selectedFormat !== "All formats" || 
+          quickChoice !== null
+        );
+
+        const filteredEvents = React.useMemo(() => {
+          return events.filter(evt => {
+            const matchesQuery = !searchQuery || 
+              evt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              evt.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              evt.dept.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              evt.pedagogy_tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+
+            let matchesCampus = true;
+            if (selectedCampus !== "All campuses") {
+              if (selectedCampus === "UH System") {
+                matchesCampus = evt.campus === "UH System" || evt.is_systemwide;
+              } else {
+                matchesCampus = evt.campus === selectedCampus || evt.is_systemwide;
+              }
+            }
+
+            const matchesTopic = selectedTopic === "All topics" || evt.pedagogy_tags.some(t => t.toLowerCase().includes(selectedTopic.toLowerCase()));
+
+            let matchesFormat = true;
+            if (selectedFormat !== "All formats") {
+              if (selectedFormat.includes("Hybrid")) matchesFormat = evt.delivery_mode === "hybrid";
+              else if (selectedFormat.includes("sync")) matchesFormat = evt.delivery_mode === "online_sync";
+              else if (selectedFormat.includes("In-person")) matchesFormat = evt.delivery_mode === "f2f";
+              else if (selectedFormat.includes("async")) matchesFormat = evt.delivery_mode === "online_async";
+            }
+
+            let matchesQuick = true;
+            if (quickChoice === "thisMonth") {
+              matchesQuick = evt.monthKey === "2026-09";
+            } else if (quickChoice === "liveOnline") {
+              matchesQuick = evt.delivery_mode === "online_sync" || evt.delivery_mode === "hybrid";
+            } else if (quickChoice === "seatsAvailable") {
+              matchesQuick = (evt.capacity_virtual > evt.registered_virtual) || (evt.capacity_in_person > evt.registered_in_person);
+            } else if (quickChoice === "selfPaced") {
+              matchesQuick = evt.delivery_mode === "online_async";
+            } else if (quickChoice === "next7") {
+              matchesQuick = evt.dateNum <= 15 && evt.monthKey === "2026-09";
+            }
+
+            return matchesQuery && matchesCampus && matchesTopic && matchesFormat && matchesQuick;
+          });
+        }, [events, searchQuery, selectedCampus, selectedTopic, selectedFormat, quickChoice]);
+
+        const groupedEvents = React.useMemo(() => {
+          const groups = {};
+          filteredEvents.forEach(evt => {
+            if (!groups[evt.month]) {
+              groups[evt.month] = [];
+            }
+            groups[evt.month].push(evt);
+          });
+          return groups;
+        }, [filteredEvents]);
+
+        // Resource Filtering
+        const filteredResources = React.useMemo(() => {
+          return resources.filter(res => {
+            const matchesQuery = !resSearch || res.title.toLowerCase().includes(resSearch.toLowerCase()) || res.tags.some(t => t.toLowerCase().includes(resSearch.toLowerCase()));
+            const matchesProvider = resProvider === "All campuses" || res.provider.includes(resProvider) || res.provider === "UH System";
+            const matchesCategory = resCategory === "All categories" || res.category === resCategory;
+            const matchesType = resType === "All types" || res.badge.includes(resType.replace('s', ''));
+            const matchesAccess = resAccess === "All access" || res.access === resAccess;
+            return matchesQuery && matchesProvider && matchesCategory && matchesType && matchesAccess;
+          });
+        }, [resources, resSearch, resProvider, resCategory, resType, resAccess]);
+
+        // Program Filtering
+        const filteredPrograms = React.useMemo(() => {
+          return programs.filter(prog => {
+            const matchesQuery = !progSearch || prog.title.toLowerCase().includes(progSearch.toLowerCase()) || prog.tags.some(t => t.toLowerCase().includes(progSearch.toLowerCase()));
+            const matchesProvider = progProvider === "All campuses" || prog.provider.includes(progProvider) || prog.provider === "UH System";
+            const matchesCategory = progCategory === "All categories" || prog.category === progCategory;
+            const matchesType = progType === "All types" || prog.badge.includes(progType.replace('s', ''));
+            const matchesAccess = progAccess === "All access" || prog.access === progAccess;
+            return matchesQuery && matchesProvider && matchesCategory && matchesType && matchesAccess;
+          });
+        }, [programs, progSearch, progProvider, progCategory, progType, progAccess]);
+
+
+        const clearAllFilters = () => {
+          setSearchQuery("");
+          setSelectedCampus("All campuses");
+          setSelectedTopic("All topics");
+          setSelectedFormat("All formats");
+          setQuickChoice(null);
+          showToast("Selections cleared. All upcoming events shown.", "info");
+        };
+
+        const toggleMonth = (monthName) => {
+          setCollapsedMonths(prev => ({
+            ...prev,
+            [monthName]: !prev[monthName]
+          }));
+        };
+
+        const expandAllMonths = () => setCollapsedMonths({});
+        const collapseAllMonths = () => {
+          const map = {};
+          orderedMonths.forEach(m => map[m] = true);
+          setCollapsedMonths(map);
+        };
+
+        const scrollToMonth = (monthName) => {
+          setCollapsedMonths(prev => ({ ...prev, [monthName]: false }));
+          const elId = `heading-${monthName.replace(/\s+/g, '-')}`;
+          const el = document.getElementById(elId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            showToast(`Expanded and scrolled to ${monthName}`, "info");
+          }
+        };
+
+        const openEventModal = (evt) => {
+          setSelectedEventModal(evt);
+          if (evt.capacity_in_person > 0 && evt.capacity_virtual === 0) {
+            setRsvpType("in_person");
+          } else if (evt.capacity_virtual > 0 && evt.capacity_in_person === 0) {
+            setRsvpType("virtual");
+          } else if (evt.delivery_mode === "f2f") {
+            setRsvpType("in_person");
+          } else {
+            const virtualRemaining = evt.capacity_virtual - evt.registered_virtual;
+            const inPersonRemaining = evt.capacity_in_person - evt.registered_in_person;
+            if (virtualRemaining <= 0 && inPersonRemaining > 0) {
+              setRsvpType("in_person");
+            } else {
+              setRsvpType("virtual");
+            }
+          }
+
+          setRecentlyViewed({
+            id: evt.id,
+            title: evt.title,
+            date: `${evt.dateFull} · ${evt.timeRange}`,
+            campus: evt.campus
+          });
+        };
+
+        const downloadIcsFile = (evt, chosenType) => {
+          const icsContent = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//University of Hawaii//PD Hub Discovery//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:REQUEST",
+            "BEGIN:VEVENT",
+            `UID:uh-pd-${evt.id}-${Date.now()}@hawaii.edu`,
+            `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+            `SUMMARY:UH PD: ${evt.title}`,
+            `DESCRIPTION:${evt.description}\\n\\nHost: ${evt.dept}\\nModality: ${chosenType === 'in_person' ? 'In-Person Seat' : 'Virtual Zoom'}${evt.is_series ? '\\nNotice: Enrolled in full 4-session series sequence.' : ''}`,
+            `LOCATION:${chosenType === 'virtual' && evt.zoom_url ? evt.zoom_url : evt.location_details}`,
+            "ORGANIZER;CN=UH Professional Development:mailto:uhoic@hawaii.edu",
+            "STATUS:CONFIRMED",
+            "END:VEVENT",
+            "END:VCALENDAR"
+          ].join("\r\n");
+
+          const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+          const link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          link.setAttribute('download', `${evt.title.slice(0, 24).replace(/[^a-z0-9]/gi, '_')}.ics`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          showToast(".ICS Calendar Invite downloaded successfully!", "success");
+        };
+
+        const handleRsvpConfirm = (evt) => {
+          const isInPerson = rsvpType === "in_person";
+          const currentCount = isInPerson ? evt.registered_in_person : evt.registered_virtual;
+          const capacity = isInPerson ? evt.capacity_in_person : evt.capacity_virtual;
+          const isWaitlist = capacity > 0 && currentCount >= capacity;
+
+          const updated = events.map(e => {
+            if (e.id === evt.id) {
+              return {
+                ...e,
+                registered_in_person: isInPerson ? e.registered_in_person + 1 : e.registered_in_person,
+                registered_virtual: !isInPerson ? e.registered_virtual + 1 : e.registered_virtual
+              };
+            }
+            return e;
+          });
+          setEvents(updated);
+
+          const newRsvp = {
+            eventId: evt.id,
+            eventTitle: evt.title,
+            dateStr: evt.dateFull,
+            timeRange: evt.timeRange,
+            type: rsvpType,
+            zoomUrl: evt.zoom_url,
+            location: evt.location_details,
+            isSeries: evt.is_series
+          };
+          setMyRsvps([newRsvp, ...myRsvps.filter(r => r.eventId !== evt.id)]);
+
+          downloadIcsFile(evt, rsvpType);
+
+          setRsvpConfirmedData({
+            event: evt,
+            type: rsvpType,
+            isWaitlist
+          });
+
+          setSelectedEventModal(null);
+        };
+
+        const handleCancelRsvp = (eventId) => {
+          setMyRsvps(prev => prev.filter(r => r.eventId !== eventId));
+          showToast("Registration cancelled. Your seat has been released.", "info");
+        };
+
+        const resetSession = () => {
+          setEvents(INITIAL_EVENTS);
+          clearAllFilters();
+          setMyRsvps([]);
+          setCarouselIndex(0);
+          setPlannerModeActive(true);
+          setIsPlannerUnlocked(false);
+          setHubTab("events");
+          setCollapsedMonths({
+            "September 2026": false,
+            "October 2026": true,
+            "November 2026": true,
+            "December 2026": true
+          });
+          showToast("Session reset to baseline state.", "info");
+        };
+
+        return (
+          <div 
+            style={{ fontSize: `${fontSize}%` }} 
+            className={`min-h-full flex flex-col ${highContrast ? 'high-contrast' : 'bg-[#FAF8F5] text-slate-900'}`}
+          >
+            <div className="sr-only" aria-live="polite" aria-atomic="true">
+              {announcement}
+            </div>
+
+            <div className="bg-[#0E252A] text-white text-[11px] py-1.5 px-4 sm:px-8 border-b border-[#14333A]">
+              <div className="max-w-7xl mx-auto flex justify-between items-center">
+                <span className="font-sans font-medium tracking-wide">
+                  University of Hawaiʻi
+                </span>
+                <div className="flex items-center space-x-4">
+                  <span className="text-slate-300 hidden sm:inline">
+                    For UH faculty, instructors & staff
+                  </span>
+                  <div className="flex items-center space-x-1 pl-2 border-l border-[#1d464f]">
+                    <span className="text-slate-400 text-[10px]">A</span>
+                    {[100, 125, 150, 200].map(sz => (
+                      <button
+                        key={sz}
+                        onClick={() => {
+                          setFontSize(sz);
+                          setAnnouncement(`Scaled font to ${sz}%`);
+                        }}
+                        className={`text-[9px] px-1 rounded transition-colors ${fontSize === sz ? 'bg-amber-300 text-slate-900 font-bold' : 'text-slate-400 hover:text-white hover:bg-[#0E4D56]'}`}
+                        aria-label={`Scale to ${sz}%`}
+                      >
+                        {sz}%
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setHighContrast(!highContrast)}
+                      className="text-[10px] text-slate-400 hover:text-white hover:bg-[#0E4D56] px-1.5 py-0.5 rounded ml-1.5 transition-colors"
+                      title="High Contrast"
+                      aria-label="Toggle High Contrast"
+                    >
+                      <i className="fa-solid fa-circle-half-stroke"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <header role="banner" className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between h-20 items-center">
+                  <div 
+                    className="flex items-center space-x-3 cursor-pointer select-none" 
+                    onClick={() => setCurrentView("catalog")}
+                  >
+                    <CampusSeal campus="UH System" size={46} />
+                    <div>
+                      <h1 className="text-xl sm:text-2xl font-bold font-serif tracking-tight text-[#163237] leading-tight">
+                        Professional Development Hub
+                      </h1>
+                      <div className="text-[9px] uppercase tracking-[0.25em] text-slate-500 font-bold mt-0.5">
+                        CONNECT • LEARN • GROW
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-6">
+                    <nav role="navigation" aria-label="Main menu" className="flex items-center space-x-5 text-sm font-semibold">
+                      <button 
+                        onClick={() => setCurrentView("catalog")}
+                        className={`pb-0.5 transition-colors ${
+                          currentView === 'catalog' 
+                            ? 'text-[#0E4D56] border-b-2 border-[#0E4D56] font-bold' 
+                            : 'text-slate-600 hover:text-[#0E4D56]'
+                        }`}
+                      >
+                        Find events
+                      </button>
+
+                      <button 
+                        onClick={() => scrollToHubTab('resources')}
+                        className="text-slate-600 hover:text-[#0E4D56] transition-colors"
+                      >
+                        Resources
+                      </button>
+
+                      <button 
+                        onClick={() => setShowRsvpsDrawer(true)}
+                        className="text-slate-600 hover:text-[#0E4D56] flex items-center gap-1.5 transition-colors"
+                      >
+                        <span>My RSVPs</span>
+                        {myRsvps.length > 0 && (
+                          <span className="bg-[#18373E] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-mono font-normal">
+                            {myRsvps.length}
+                          </span>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (currentView === 'planner') {
+                            setCurrentView("catalog");
+                          } else {
+                            requestPlannerAccess("overview");
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all shadow-xs ${
+                          currentView === 'planner' 
+                            ? 'bg-[#18373E] text-white border-[#18373E]' 
+                            : 'border-slate-800 text-slate-800 hover:bg-[#0E4D56] hover:text-white hover:border-[#0E4D56]'
+                        }`}
+                      >
+                        {isPlannerUnlocked ? "Planner Portal" : "Planner Portal 🔒"}
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            {plannerModeActive && (
+              <aside 
+                aria-label="Contributor session status" 
+                className="bg-[#16383D] border-t border-b border-[#C5A566] text-white text-xs py-2 px-4 sm:px-8"
+              >
+                <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center space-x-2 text-slate-200">
+                    <span className="text-emerald-300 font-bold">✓</span>
+                    <span>
+                      <strong className="text-white">Planner mode: {userProfile.name}</strong>{' '}
+                      <span className="text-[#C5A566] font-semibold">{userProfile.roleLabel}</span>{' '}
+                      · {userProfile.unit} · Edit controls appear only on authorized events.
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => requestPlannerAccess("overview")}
+                      className="text-[#E6B85E] hover:text-white hover:underline text-xs font-semibold transition-colors"
+                    >
+                      Open Planner Workspace →
+                    </button>
+                    <button
+                      onClick={() => {
+                        setPlannerModeActive(false);
+                        setIsPlannerUnlocked(false);
+                        setUserRole("public");
+                        showToast("Exited planner mode. You are now in public view.", "info");
+                      }}
+                      className="border border-white/60 hover:border-white text-white text-[11px] font-medium px-3 py-1 rounded transition hover:bg-[#0E4D56]"
+                    >
+                      Exit planner mode
+                    </button>
+                  </div>
+                </div>
+              </aside>
+            )}
+
+            {currentView === "catalog" && (
+              <>
+                <section 
+                  aria-label="Welcome banner and featured opportunity"
+                  className="relative bg-gradient-to-br from-[#1C3B47] via-[#1A3642] to-[#142C35] text-white overflow-hidden py-12 sm:py-16 px-4 sm:px-6 lg:px-8 select-none"
+                >
+                  <div className="absolute inset-0 pointer-events-none opacity-45 overflow-hidden" aria-hidden="true">
+                    <svg className="absolute -bottom-28 -left-28 w-[460px] h-[460px]" viewBox="0 0 500 500" fill="none">
+                      <circle cx="120" cy="380" r="160" stroke="#264E5C" strokeWidth="26" />
+                      <circle cx="120" cy="380" r="230" stroke="#214451" strokeWidth="28" />
+                      <circle cx="120" cy="380" r="300" stroke="#1D3B47" strokeWidth="30" />
+                    </svg>
+                    
+                    <svg className="absolute -top-36 -right-32 w-[620px] h-[620px]" viewBox="0 0 600 600" fill="none">
+                      <circle cx="480" cy="120" r="240" stroke="#264E5C" strokeWidth="34" />
+                      <circle cx="480" cy="120" r="340" stroke="#224552" strokeWidth="38" />
+                      <circle cx="480" cy="120" r="440" stroke="#1D3B47" strokeWidth="42" />
+                    </svg>
+                  </div>
+
+                  <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
+                    <div className="lg:col-span-7 space-y-5">
+                      <div className="flex items-center space-x-2 text-[11px] tracking-[0.2em] uppercase font-bold text-[#E6B85E]">
+                        <span className="text-xs">✦</span>
+                        <span>ONE UH • SHARED LEARNING</span>
+                      </div>
+
+                      <h2 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-medium text-white leading-[1.12]">
+                        UH professional <br />
+                        development. <br />
+                        <span className="italic font-serif text-[#9FD3C7]">All in one place.</span>
+                      </h2>
+
+                      <p className="text-[#C8D7D6] text-sm sm:text-base max-w-xl font-normal leading-relaxed">
+                        Find scheduled events, ongoing professional-development programs, and trusted UH AI resources.
+                      </p>
+
+                      <div className="pt-2 flex flex-wrap items-center gap-4">
+                        <a 
+                          href="#discovery-catalog"
+                          onClick={(e) => { e.preventDefault(); scrollToHubTab('events'); }}
+                          className="inline-flex items-center gap-2 bg-[#E6B85E] hover:bg-[#0E4D56] text-[#132B30] hover:text-white font-bold px-5 py-3 rounded-lg shadow-md transition-colors duration-200 text-sm font-sans"
+                        >
+                          <span>Explore upcoming events</span>
+                          <span className="text-xs font-black">↓</span>
+                        </a>
+                        
+                        <button 
+                          onClick={() => scrollToHubTab('resources')}
+                          className="text-white hover:text-[#9FD3C7] font-bold text-sm flex items-center gap-2 transition-colors"
+                        >
+                          <span>Browse UH AI resources</span>
+                          <span>→</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div 
+                      className="lg:col-span-5 relative select-none"
+                      onMouseEnter={() => setIsCarouselHovered(true)}
+                      onMouseLeave={() => setIsCarouselHovered(false)}
+                      onTouchStart={handleTouchStart}
+                      onTouchEnd={handleTouchEnd}
+                    >
+                      {(() => {
+                        const currentTheme = getCampusTheme(currentCarouselEvent.campus);
+                        return (
+                          <>
+                            <button
+                              onClick={() => setCarouselIndex(prev => (prev === 0 ? carouselEvents.length - 1 : prev - 1))}
+                              style={{ 
+                                borderColor: currentTheme.border,
+                                color: currentTheme.text
+                              }}
+                              className="absolute -left-4 sm:-left-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white hover:bg-[#0E4D56] hover:border-[#0E4D56] hover:text-white shadow-xl flex items-center justify-center text-xl font-bold border-2 transition-all duration-200 focus:ring-2 focus:ring-[#0E4D56] hover:scale-105 active:scale-95"
+                              aria-label="Previous event in carousel"
+                            >
+                              ‹
+                            </button>
+
+                            <button
+                              onClick={() => setCarouselIndex(prev => (prev === carouselEvents.length - 1 ? 0 : prev + 1))}
+                              style={{ 
+                                borderColor: currentTheme.border,
+                                color: currentTheme.text
+                              }}
+                              className="absolute -right-4 sm:-right-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white hover:bg-[#0E4D56] hover:border-[#0E4D56] hover:text-white shadow-xl flex items-center justify-center text-xl font-bold border-2 transition-all duration-200 focus:ring-2 focus:ring-[#0E4D56] hover:scale-105 active:scale-95"
+                              aria-label="Next event in carousel"
+                            >
+                              ›
+                            </button>
+
+                            <div className="absolute inset-0 bg-[#E8E3D7] rounded-2xl transform translate-y-2 translate-x-1 shadow-md -z-0"></div>
+
+                            <div 
+                              style={{ borderLeftColor: currentTheme.border }}
+                              className="relative z-10 bg-white text-slate-900 rounded-2xl p-5 sm:p-6 shadow-xl border border-slate-200 border-l-[6px] space-y-4 transition-colors duration-500 overflow-hidden"
+                            >
+                              <div className="absolute top-0 left-0 right-0 h-[3px] bg-slate-100 overflow-hidden">
+                                <div 
+                                  key={`${carouselIndex}-${isAutoplay}-${isCarouselHovered}`}
+                                  style={{ backgroundColor: currentTheme.border }}
+                                  className={`h-full ${isAutoplay && !isCarouselHovered ? 'carousel-progress-active' : isCarouselHovered ? 'carousel-progress-paused w-full opacity-60' : 'w-0'}`}
+                                />
+                              </div>
+
+                              <div className="flex justify-between items-center text-slate-500 text-xs">
+                                <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600">
+                                  COMING UP NEXT
+                                </span>
+                                <span className="text-[11px] font-medium text-slate-500 transition-opacity duration-300">
+                                  {carouselIndex + 1} of {carouselEvents.length} • September 2026
+                                </span>
+                              </div>
+
+                              <div className="overflow-hidden">
+                                <div 
+                                  className="flex transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                                  style={{ transform: `translateX(-${carouselIndex * 100}%)` }}
+                                >
+                                  {carouselEvents.map((evt) => {
+                                    const theme = getCampusTheme(evt.campus);
+                                    return (
+                                      <div key={evt.id} className="w-full flex-shrink-0 space-y-3.5 pr-0.5">
+                                        <div className="bg-[#F8F7F4] border border-slate-200/80 rounded-xl p-3 flex items-center space-x-3.5">
+                                          <CampusSeal campus={evt.campus} size={44} />
+                                          <div>
+                                            <div className="text-[9px] uppercase tracking-wider font-bold text-slate-500">
+                                              HOSTED BY
+                                            </div>
+                                            <div className="text-sm font-bold text-slate-900 leading-tight">
+                                              {evt.campus}
+                                            </div>
+                                            <div className="text-xs text-slate-600">
+                                              {evt.dept}
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-start space-x-3.5 pt-0.5">
+                                          <div className="flex-shrink-0 w-14 rounded-lg overflow-hidden border border-slate-300 text-center shadow-xs">
+                                            <div 
+                                              style={{ backgroundColor: theme.primary }}
+                                              className="text-white text-[9px] font-extrabold uppercase py-0.5 tracking-wider transition-colors duration-300"
+                                            >
+                                              SEP
+                                            </div>
+                                            <div className="bg-white text-slate-900 py-1.5 font-bold font-serif text-2xl leading-none">
+                                              {evt.dateNum}
+                                            </div>
+                                          </div>
+
+                                          <div className="space-y-1 min-w-0">
+                                            <div className="flex items-center space-x-2 text-xs">
+                                              <span 
+                                                style={{ color: theme.text }} 
+                                                className="font-semibold truncate"
+                                              >
+                                                • {evt.deliveryLabel}
+                                              </span>
+                                              <span className="text-slate-400">·</span>
+                                              <span className="text-slate-500 text-[11px] truncate">
+                                                {evt.openScope}
+                                              </span>
+                                            </div>
+
+                                            <h3 
+                                              onClick={() => openEventModal(evt)}
+                                              className="text-base sm:text-lg font-bold font-serif text-slate-900 leading-snug hover:text-[#0E4D56] cursor-pointer line-clamp-2 transition-colors"
+                                            >
+                                              {evt.title}
+                                            </h3>
+
+                                            <div className="text-xs text-slate-600">
+                                              {evt.dayName === 'WED' ? 'Wednesday' : 'Friday'} · {evt.timeRange}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              <div className="pt-2 flex justify-between items-center border-t border-slate-100">
+                                <button
+                                  onClick={() => openEventModal(currentCarouselEvent)}
+                                  className="text-xs font-bold text-[#18373E] hover:text-[#0E4D56] flex items-center gap-1 hover:underline transition-colors"
+                                >
+                                  <span>View event & RSVP</span>
+                                  <span aria-hidden="true">→</span>
+                                </button>
+
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() => {
+                                      setIsAutoplay(!isAutoplay);
+                                      showToast(!isAutoplay ? "Carousel autoplay resumed" : "Carousel autoplay paused", "info");
+                                    }}
+                                    className="w-7 h-7 rounded-full border border-slate-300 text-slate-700 hover:bg-[#0E4D56] hover:border-[#0E4D56] hover:text-white flex items-center justify-center text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-[#0E4D56]"
+                                    title={isAutoplay ? "Pause" : "Play"}
+                                    aria-label={isAutoplay ? "Pause carousel" : "Play carousel"}
+                                  >
+                                    <i className={`fa-solid ${isAutoplay ? 'fa-pause' : 'fa-play'}`}></i>
+                                  </button>
+
+                                  <div className="flex items-center space-x-1 pl-1">
+                                    {carouselEvents.map((_, idx) => {
+                                      const isActive = carouselIndex === idx;
+                                      return (
+                                        <button
+                                          key={idx}
+                                          onClick={() => setCarouselIndex(idx)}
+                                          style={{ 
+                                            backgroundColor: isActive ? currentTheme.border : undefined 
+                                          }}
+                                          className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
+                                            isActive 
+                                              ? 'w-5' 
+                                              : 'w-2.5 bg-slate-300 hover:bg-[#0E4D56]'
+                                          }`}
+                                          aria-label={`Go to slide ${idx + 1}`}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </section>
+
+                <section 
+                  aria-label="Platform features and guarantees"
+                  className="bg-[#F7F5F0] border-b border-[#E7E2D6] py-4 px-4 sm:px-6 lg:px-8 text-slate-800"
+                >
+                  <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 md:divide-x md:divide-slate-200">
+                    <div className="flex items-center space-x-3 md:pr-4">
+                      <div className="w-6 h-6 rounded-full bg-[#18373E] text-white flex items-center justify-center text-xs flex-shrink-0">
+                        <i className="fa-solid fa-check text-[10px]" aria-hidden="true"></i>
+                      </div>
+                      <div className="text-xs">
+                        <div className="font-bold text-slate-900">UH-only opportunities</div>
+                        <div className="text-slate-500 text-[11px]">Designed for faculty & staff</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3 md:px-4">
+                      <div className="w-6 h-6 rounded-full bg-[#18373E] text-white flex items-center justify-center text-xs flex-shrink-0">
+                        <i className="fa-solid fa-bolt text-[10px]" aria-hidden="true"></i>
+                      </div>
+                      <div className="text-xs">
+                        <div className="font-bold text-slate-900">One-click RSVP</div>
+                        <div className="text-slate-500 text-[11px]">Calendar invite included</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3 md:pl-4">
+                      <div className="w-6 h-6 rounded-full bg-[#18373E] text-white flex items-center justify-center text-xs flex-shrink-0">
+                        <i className="fa-regular fa-clock text-[10px]" aria-hidden="true"></i>
+                      </div>
+                      <div className="text-xs">
+                        <div className="font-bold text-slate-900">Timely reminders</div>
+                        <div className="text-slate-500 text-[11px]">Details when you need them</div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {recentlyViewed && (
+                  <section aria-label="Recently Viewed" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+                      <div className="space-y-0.5 text-center md:text-left">
+                        <div className="uppercase text-[10px] tracking-[0.2em] text-slate-500 font-extrabold">
+                          CONTINUE EXPLORING
+                        </div>
+                        <h3 className="font-serif text-xl sm:text-2xl font-bold text-slate-900">
+                          Recently viewed
+                        </h3>
+                      </div>
+
+                      <div 
+                        onClick={() => {
+                          const found = events.find(e => e.id === recentlyViewed.id);
+                          if (found) openEventModal(found);
+                        }}
+                        className="bg-[#FAF8F5] hover:bg-[#F3EFE6] hover:border-[#0E4D56] border border-slate-200 rounded-xl px-4 sm:px-5 py-3 cursor-pointer transition-all shadow-xs flex items-center space-x-3.5 max-w-lg w-full md:w-auto"
+                        title="Click to view event details and RSVP"
+                      >
+                        <div className="flex-shrink-0 drop-shadow-xs">
+                          <CampusSeal campus={recentlyViewed.campus || "UH System"} size={44} />
+                        </div>
+                        <div className="text-left space-y-0.5 min-w-0">
+                          <div className="text-sm font-bold text-slate-900 hover:text-[#0E4D56] leading-snug truncate transition-colors">
+                            {recentlyViewed.title}
+                          </div>
+                          <div className="text-xs text-slate-500 font-medium truncate">
+                            {recentlyViewed.date}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex-shrink-0">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setRecentlyViewed(null);
+                            showToast("Cleared recently viewed history.", "info");
+                          }}
+                          className="text-xs font-bold text-slate-700 hover:text-[#0E4D56] hover:bg-[#0E4D56]/10 underline px-2 py-1 rounded transition-colors"
+                          aria-label="Clear recently viewed event history"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+                )}
+
+                <main id="discovery-catalog" role="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                  <div className="mb-8 space-y-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                      <div>
+                        <span className="text-[11px] uppercase tracking-wider font-bold text-slate-500 block mb-1">
+                          EXPLORE ACROSS UH
+                        </span>
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-[#163237] leading-tight">
+                          Professional learning, all in one place
+                        </h2>
+                      </div>
+                      <p className="text-xs text-slate-500 max-w-sm md:text-right leading-relaxed">
+                        Find scheduled events, ongoing professional-development programs, and trusted UH AI resources.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 p-2 bg-[#F3F6F6] rounded-2xl border border-[#D5E1E1]">
+                      <button
+                        onClick={() => setHubTab("events")}
+                        className={`p-4 rounded-xl flex items-center gap-4 text-left transition-all ${
+                          hubTab === "events" 
+                            ? "bg-white border-[#18373E] shadow-sm ring-1 ring-[#18373E]/20" 
+                            : "border-transparent hover:bg-white/60 opacity-80 hover:opacity-100"
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                          hubTab === "events" ? "bg-[#18373E] text-white" : "bg-slate-200 text-slate-500"
+                        }`}>
+                          <i className="fa-regular fa-clock" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                          <div className={`font-bold text-sm ${hubTab === "events" ? "text-slate-900" : "text-slate-700"}`}>
+                            Webinars & Events
+                          </div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">{events.length} scheduled opportunities</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setHubTab("programs")}
+                        className={`p-4 rounded-xl flex items-center gap-4 text-left transition-all ${
+                          hubTab === "programs" 
+                            ? "bg-white border-[#18373E] shadow-sm ring-1 ring-[#18373E]/20" 
+                            : "border-transparent hover:bg-white/60 opacity-80 hover:opacity-100"
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                          hubTab === "programs" ? "bg-[#18373E] text-white" : "bg-[#EBF5F0] text-[#024731]"
+                        }`}>
+                          <i className="fa-solid fa-layer-group text-sm" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                          <div className={`font-bold text-sm ${hubTab === "programs" ? "text-slate-900" : "text-slate-700"}`}>
+                            Professional Development
+                          </div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">{programs.length} programs and learning pathways</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setHubTab("resources")}
+                        className={`p-4 rounded-xl flex items-center gap-4 text-left transition-all ${
+                          hubTab === "resources" 
+                            ? "bg-white border-[#18373E] shadow-sm ring-1 ring-[#18373E]/20" 
+                            : "border-transparent hover:bg-white/60 opacity-80 hover:opacity-100"
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                          hubTab === "resources" ? "bg-[#18373E] text-white" : "bg-[#FDF0F2] text-[#A71930]"
+                        }`}>
+                          <i className="fa-solid fa-sparkles text-sm" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                          <div className={`font-bold text-sm ${hubTab === "resources" ? "text-slate-900" : "text-slate-700"}`}>
+                            UH AI Resources
+                          </div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">{resources.length} guides, tools, and policies</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <aside 
+                      role="search" 
+                      aria-label="Filters" 
+                      className="lg:col-span-4 bg-[#EFF4F4] text-slate-800 rounded-2xl overflow-hidden shadow-sm border border-[#D5E1E1] lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto custom-scrollbar transition-all"
+                    >
+                      <div className="bg-[#18373E] p-4 text-white flex justify-between items-center gap-2">
+                        <div className="space-y-0.5 min-w-0">
+                          <span className="text-[9px] uppercase tracking-widest text-[#A2D8CB] font-extrabold block">
+                            REFINE RESULTS
+                          </span>
+                          <h3 className="font-serif text-lg font-bold text-white tracking-wide truncate">
+                            Search & filters
+                          </h3>
+                        </div>
+
+                        {(hasActiveEventFilters || resSearch || resProvider !== "All campuses" || resCategory !== "All categories" || progSearch || progProvider !== "All campuses") && (
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              if(hubTab === 'events') clearAllFilters();
+                              if(hubTab === 'programs') { setProgSearch(""); setProgProvider("All campuses"); setProgCategory("All categories"); setProgType("All types"); }
+                              if(hubTab === 'resources') { setResSearch(""); setResProvider("All campuses"); setResCategory("All categories"); setResType("All types"); }
+                            }}
+                            className="text-[11px] font-medium px-3 py-1.5 rounded-lg border border-white/20 hover:border-white/60 bg-[#122D33]/60 hover:bg-[#0E4D56] text-slate-200 hover:text-white transition-colors flex items-center gap-1.5 flex-shrink-0 shadow-2xs"
+                            title="Clear all search keywords and filter selections"
+                          >
+                            <span>Clear selections</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="p-4 space-y-4">
+                        <div className="space-y-1.5 relative">
+                          <label className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-700">
+                            SEARCH KEYWORDS
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={hubTab === 'events' ? searchQuery : hubTab === 'programs' ? progSearch : resSearch}
+                              onChange={(e) => {
+                                if(hubTab === 'events') setSearchQuery(e.target.value);
+                                if(hubTab === 'programs') setProgSearch(e.target.value);
+                                if(hubTab === 'resources') setResSearch(e.target.value);
+                              }}
+                              onFocus={() => hubTab === 'events' && setIsSearchDropdownOpen(true)}
+                              placeholder="AI, OER, accessibility..."
+                              className="w-full bg-white text-slate-800 placeholder:text-slate-400 text-xs rounded-md pl-8 pr-8 py-2.5 border border-slate-300 focus:border-[#0E4D56] focus:ring-1 focus:ring-[#0E4D56] outline-none shadow-2xs"
+                            />
+                            <i className="fa-solid fa-magnifying-glass absolute left-2.5 top-3 text-slate-400 text-xs" aria-hidden="true"></i>
+                          </div>
+
+                          {hubTab === 'events' && isSearchDropdownOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-xl max-h-56 overflow-y-auto z-40 divide-y divide-slate-100">
+                              <div className="px-3 py-1.5 bg-slate-50 text-[10px] uppercase font-bold text-slate-400 tracking-wider flex justify-between items-center">
+                                <span>Suggested Topics</span>
+                                <button onClick={() => setIsSearchDropdownOpen(false)} className="text-slate-400 hover:text-[#0E4D56] text-xs">✕</button>
+                              </div>
+                              {PREFILLED_KEYWORDS.map((kw) => (
+                                <button key={kw} onClick={() => { setSearchQuery(kw); setIsSearchDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-xs text-slate-800 hover:bg-[#0E4D56] hover:text-white font-medium flex justify-between">
+                                  <span>{kw}</span><i className="fa-solid fa-arrow-turn-down-left text-[9px] opacity-60"></i>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {hubTab === "events" && (
+                          <>
+                            <div className="space-y-1.5">
+                              <span className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-700">QUICK CHOICES</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {[
+                                  { key: "next7", label: "Next 7 days" },
+                                  { key: "thisMonth", label: "This month" },
+                                  { key: "liveOnline", label: "Live online" },
+                                  { key: "selfPaced", label: "Self-paced" },
+                                  { key: "seatsAvailable", label: "Seats available" }
+                                ].map(chip => (
+                                  <button
+                                    key={chip.key}
+                                    onClick={() => setQuickChoice(quickChoice === chip.key ? null : chip.key)}
+                                    className={`text-[11px] px-3 py-1 rounded-full border transition-all ${quickChoice === chip.key ? 'bg-[#18373E] text-white border-[#18373E] font-bold shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 hover:border-[#0E4D56] hover:text-[#0E4D56] border-slate-300'}`}
+                                  >
+                                    {chip.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-700">HOSTED BY CAMPUS</label>
+                              <select value={selectedCampus} onChange={(e) => setSelectedCampus(e.target.value)} className="w-full bg-white text-slate-800 text-xs rounded-md px-3 py-2 border border-slate-300 focus:border-[#0E4D56] focus:ring-1 focus:ring-[#0E4D56] outline-none shadow-2xs">
+                                {UH_CAMPUSES.map(c => <option key={c} value={c}>{c}</option>)}
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-700">TOPIC</label>
+                              <select value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)} className="w-full bg-white text-slate-800 text-xs rounded-md px-3 py-2 border border-slate-300 focus:border-[#0E4D56] focus:ring-1 focus:ring-[#0E4D56] outline-none shadow-2xs">
+                                {UH_TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
+                              </select>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-700">FORMAT</label>
+                              <select value={selectedFormat} onChange={(e) => setSelectedFormat(e.target.value)} className="w-full bg-white text-slate-800 text-xs rounded-md px-3 py-2 border border-slate-300 focus:border-[#0E4D56] focus:ring-1 focus:ring-[#0E4D56] outline-none shadow-2xs">
+                                {UH_FORMATS.map(f => <option key={f} value={f}>{f}</option>)}
+                              </select>
+                            </div>
+                          </>
+                        )}
+
+                        {(hubTab === "programs" || hubTab === "resources") && (
+                          <>
+                            <div className="space-y-1">
+                              <label className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-700">PROVIDED BY</label>
+                              <select value={hubTab === 'programs' ? progProvider : resProvider} onChange={(e) => hubTab === 'programs' ? setProgProvider(e.target.value) : setResProvider(e.target.value)} className="w-full bg-white text-slate-800 text-xs rounded-md px-3 py-2 border border-slate-300 focus:border-[#0E4D56] outline-none">
+                                <option>All campuses</option><option>UH System</option><option>Information Technology Services (ITS)</option><option>UH Online Innovation Center (UHOIC)</option><option>UH Community Colleges</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-700">CATEGORY</label>
+                              <select value={hubTab === 'programs' ? progCategory : resCategory} onChange={(e) => hubTab === 'programs' ? setProgCategory(e.target.value) : setResCategory(e.target.value)} className="w-full bg-white text-slate-800 text-xs rounded-md px-3 py-2 border border-slate-300 focus:border-[#0E4D56] outline-none">
+                                <option>All categories</option><option>Policy & Responsible Use</option><option>Teaching & Learning</option><option>Tools & Licenses</option><option>AI Learning</option><option>Online Teaching</option><option>Strategy & Community</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="block text-[10px] uppercase font-extrabold tracking-wider text-slate-700">{hubTab === 'programs' ? 'PROGRAM TYPE' : 'RESOURCE TYPE'}</label>
+                              <select value={hubTab === 'programs' ? progType : resType} onChange={(e) => hubTab === 'programs' ? setProgType(e.target.value) : setResType(e.target.value)} className="w-full bg-white text-slate-800 text-xs rounded-md px-3 py-2 border border-slate-300 focus:border-[#0E4D56] outline-none">
+                                <option>All types</option><option>Guide</option><option>Licensed tool</option><option>Resource hub</option><option>Badge program</option><option>Program directory</option><option>Shared document</option>
+                              </select>
+                            </div>
+                          </>
+                        )}
+
+                        <div className="bg-white border border-slate-200 rounded-xl p-3 text-center text-xs text-slate-700 font-medium shadow-2xs">
+                          <strong className="text-base font-bold text-slate-900 mr-1">
+                            {hubTab === 'events' ? filteredEvents.length : hubTab === 'programs' ? filteredPrograms.length : filteredResources.length}
+                          </strong> 
+                          matching {hubTab === 'events' ? 'opportunities' : hubTab === 'programs' ? 'programs' : 'resources'}
+                        </div>
+                      </div>
+                    </aside>
+
+                    <div className="lg:col-span-8 space-y-5">
+                      
+                      {hubTab === "events" && (
+                        <>
+                          <div className="flex flex-wrap justify-between items-center gap-3 text-xs text-slate-600 border-b border-slate-200 pb-3">
+                            <span className="font-medium text-slate-800">{filteredEvents.length} matching opportunities</span>
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center space-x-1.5">
+                                <span className="text-slate-500">Sort:</span>
+                                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="bg-transparent font-semibold text-slate-800 border-b border-slate-400 focus:outline-none cursor-pointer text-xs focus:border-[#0E4D56]">
+                                  <option value="soonest">Soonest ↓</option>
+                                  <option value="seats">Most Seats Available</option>
+                                  <option value="title">Alphabetical (A-Z)</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-white border border-slate-200 rounded-lg p-2.5 shadow-xs flex flex-wrap items-center justify-between gap-2 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1 hidden sm:flex">
+                                <i className="fa-solid fa-location-arrow text-[#0E4D56]" aria-hidden="true"></i>
+                                Jump to month:
+                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {orderedMonths.map(mName => {
+                                  const count = (groupedEvents[mName] || []).length;
+                                  const shortLabel = mName.replace(" 2026", " '26");
+                                  const isCollapsed = !!collapsedMonths[mName];
+                                  return (
+                                    <button
+                                      key={mName}
+                                      onClick={() => scrollToMonth(mName)}
+                                      className={`px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                                        count > 0 ? 'bg-[#18373E]/10 hover:bg-[#0E4D56] text-[#18373E] hover:text-white' : 'bg-slate-100 text-slate-400 hover:bg-[#0E4D56] hover:text-white'
+                                      }`}
+                                      title={isCollapsed ? `Click to expand and jump to ${mName}` : `Jump to ${mName}`}
+                                    >
+                                      <span>{shortLabel}</span>
+                                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${count > 0 ? 'bg-[#18373E] text-white' : 'bg-slate-300 text-slate-600'}`}>{count}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2 border-l border-slate-200 pl-3">
+                              <button onClick={expandAllMonths} className="hover:underline hover:text-[#0E4D56] text-slate-500 font-medium transition-colors">Expand all</button>
+                              <span className="text-slate-300">·</span>
+                              <button onClick={collapseAllMonths} className="hover:underline hover:text-[#0E4D56] text-slate-500 font-medium transition-colors">Collapse all</button>
+                            </div>
+                          </div>
+
+                          {orderedMonths.map(monthName => {
+                            const monthEvents = groupedEvents[monthName] || [];
+                            const isCollapsed = !!collapsedMonths[monthName];
+                            const isCurrentMonth = monthName.includes("September 2026");
+
+                            return (
+                              <section key={monthName} aria-labelledby={`heading-${monthName.replace(/\s+/g, '-')}`} className="space-y-4">
+                                <div onClick={() => toggleMonth(monthName)} className="bg-[#18373E] hover:bg-[#0E4D56] text-white p-4 rounded-xl flex items-center justify-between cursor-pointer transition-colors shadow-xs select-none">
+                                  <div className="flex items-center space-x-3">
+                                    <h3 id={`heading-${monthName.replace(/\s+/g, '-')}`} className="text-xl font-serif font-bold text-white">{monthName}</h3>
+                                    <span className="bg-[#0E252A] text-slate-200 text-xs px-2.5 py-0.5 rounded-full font-sans font-medium">{monthEvents.length} {monthEvents.length === 1 ? "opportunity" : "opportunities"}</span>
+                                    {isCurrentMonth && <span className="bg-[#E6B85E] text-[#132B30] text-[10px] font-bold px-2.5 py-0.5 rounded-full font-sans uppercase tracking-wider">CURRENT MONTH</span>}
+                                  </div>
+                                  <div className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center text-white/80 hover:text-white hover:border-white text-xs transition">
+                                    <i className={`fa-solid ${isCollapsed ? 'fa-chevron-right' : 'fa-chevron-up'}`} aria-hidden="true"></i>
+                                  </div>
+                                </div>
+
+                                {!isCollapsed && (
+                                  <div className="space-y-4 pt-1">
+                                    {monthEvents.length === 0 ? (
+                                      <div className="bg-white border border-dashed border-slate-300 rounded-xl p-6 text-center space-y-3">
+                                        <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center text-sm"><i className="fa-regular fa-calendar-xmark" aria-hidden="true"></i></div>
+                                        <div className="text-xs text-slate-700 font-semibold">No events currently match your filters for {monthName}.</div>
+                                        <div className="flex justify-center space-x-3 text-xs pt-1">
+                                          <button onClick={clearAllFilters} className="text-[#18373E] hover:text-[#0E4D56] font-bold hover:underline transition-colors">Clear all filters</button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      monthEvents.map(evt => {
+                                        const inPersonAvail = evt.capacity_in_person - evt.registered_in_person;
+                                        const virtualAvail = evt.capacity_virtual - evt.registered_virtual;
+                                        
+                                        return (
+                                          <article key={evt.id} className="hc-card bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md hover:border-slate-300 transition-all relative space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                                              <div className="md:col-span-2 flex md:flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-lg p-3 text-center min-w-[70px] space-y-2">
+                                                <CampusSeal campus={evt.campus} size={36} />
+                                                <div>
+                                                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-red-700 block">SEP</span>
+                                                  <span className="text-2xl font-bold font-serif text-slate-900 leading-none block py-0.5">{evt.dateNum}</span>
+                                                  <span className="text-[10px] font-semibold text-slate-400 uppercase block">{evt.dayName}</span>
+                                                </div>
+                                              </div>
+
+                                              <div className="md:col-span-7 space-y-2">
+                                                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                                                  <span className="font-semibold text-slate-700 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-600"></span>{evt.campus}</span>
+                                                  <span className="text-slate-400">·</span>
+                                                  <span className="text-slate-600 font-medium">{evt.deliveryLabel}</span>
+                                                </div>
+
+                                                <h4 onClick={() => openEventModal(evt)} className="text-base font-bold text-slate-900 hover:text-[#0E4D56] cursor-pointer leading-snug transition-colors">{evt.title}</h4>
+
+                                                <div className="text-xs text-slate-500 flex flex-wrap gap-2">
+                                                  <span>{evt.dept}</span>
+                                                  {evt.openScope && <><span className="text-slate-300">·</span><span className="text-slate-600 font-medium">{evt.openScope}</span></>}
+                                                </div>
+
+                                                <p className="text-xs text-slate-600 leading-relaxed">{evt.description}</p>
+
+                                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                                  {evt.pedagogy_tags.map(tag => (
+                                                    <span key={tag} className={`text-[10px] px-2 py-0.5 rounded ${tag.includes("★") ? 'bg-amber-100 text-amber-900 font-bold border border-amber-300' : 'bg-slate-100 text-slate-700 font-medium'}`}>{tag}</span>
+                                                  ))}
+                                                </div>
+                                              </div>
+
+                                              <div className="md:col-span-3 flex flex-col items-start md:items-end justify-between self-stretch pt-2 md:pt-0 space-y-3">
+                                                <div className="text-right space-y-0.5">
+                                                  {evt.delivery_mode === 'hybrid' ? (
+                                                    <><div className="text-xs font-semibold text-[#0E4D56]">{inPersonAvail > 0 ? `${inPersonAvail} in-person seats open` : "In-person full"}</div><div className="text-[11px] text-slate-500">{virtualAvail > 0 ? `${virtualAvail} virtual seats open` : "Zoom waitlist"}</div></>
+                                                  ) : evt.delivery_mode === 'f2f' ? (
+                                                    <div className="text-xs font-semibold text-amber-800">{inPersonAvail > 0 ? `Only ${inPersonAvail} seats left` : "Room full"}</div>
+                                                  ) : (
+                                                    <div className="text-xs font-semibold text-[#0E4D56]">{virtualAvail > 0 ? `${virtualAvail} virtual seats open` : "Capacity open"}</div>
+                                                  )}
+                                                </div>
+                                                <button onClick={() => openEventModal(evt)} className="w-full md:w-auto bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-semibold px-4 py-2 rounded-md shadow-xs transition-colors flex items-center justify-center gap-1.5 focus:ring-2 focus:ring-[#E6B85E]">
+                                                  <span>Details & RSVP</span><span aria-hidden="true">→</span>
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </article>
+                                        );
+                                      })
+                                    )}
+                                    <div className="text-center pt-2">
+                                      <button onClick={() => toggleMonth(monthName)} className="text-xs text-slate-500 hover:text-[#0E4D56] hover:underline font-medium transition-colors">↑ Collapse {monthName}</button>
+                                    </div>
+                                  </div>
+                                )}
+                              </section>
+                            );
+                          })}
+                        </>
+                      )}
+
+                      {hubTab === "programs" && (
+                        <div className="space-y-6 animate-fadeIn">
+                          <div className="bg-[#FAF8F5] border border-[#E7E2D6] rounded-xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="space-y-1">
+                              <span className="text-[10px] uppercase font-bold tracking-[0.15em] text-[#024731]">ONGOING LEARNING PATHWAYS</span>
+                              <h3 className="text-2xl font-serif font-bold text-[#18373E]">Professional Development</h3>
+                            </div>
+                            <p className="text-xs text-slate-600 max-w-md leading-relaxed md:text-right md:border-l border-slate-300 md:pl-5">
+                              Explore programs, badges, courses, and self-paced learning opportunities available across the UH System.
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {filteredPrograms.map(prog => (
+                              <div key={prog.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition flex flex-col h-full">
+                                <div className="flex justify-between items-start mb-4">
+                                  <div className="flex items-center space-x-2">
+                                    <CampusSeal campus={prog.provider === 'UH System' ? 'UH System' : 'UH Mānoa'} size={24} />
+                                    <span className="text-xs font-bold text-slate-800">{prog.provider.includes("System") ? "UH System" : prog.provider}</span>
+                                  </div>
+                                  <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">{prog.badge}</span>
+                                </div>
+                                <div className="space-y-1 flex-1">
+                                  <div className="text-[10px] uppercase font-extrabold tracking-wider text-slate-500">{prog.category}</div>
+                                  <h4 className="text-xl font-serif font-bold text-[#18373E]"><a href={prog.url} target="_blank" rel="noopener noreferrer" className="hover:text-[#0E4D56] transition-colors">{prog.title}</a></h4>
+                                  <p className="text-xs text-slate-600 pt-1 leading-relaxed">{prog.description}</p>
+                                </div>
+                                <div className="bg-[#FAF8F5] rounded-xl p-4 mt-5 mb-4 grid grid-cols-2 gap-4 text-xs">
+                                  <div><div className="text-[9px] uppercase font-bold text-slate-400">PROVIDED BY</div><div className="font-bold text-slate-800">{prog.provider}</div></div>
+                                  <div><div className="text-[9px] uppercase font-bold text-slate-400">AUDIENCE</div><div className="font-bold text-slate-800">{prog.audience}</div></div>
+                                  <div><div className="text-[9px] uppercase font-bold text-slate-400">ACCESS</div><div className="font-bold text-slate-800">{prog.access}</div></div>
+                                  <div><div className="text-[9px] uppercase font-bold text-slate-400">VERIFIED</div><div className="font-bold text-slate-800">September 2026</div></div>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 mb-5">
+                                  {prog.tags.map(tag => (<span key={tag} className="bg-emerald-50 text-emerald-800 border border-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full">{tag}</span>))}
+                                </div>
+                                <div className="flex items-center gap-3 mt-auto">
+                                  <a href={prog.url} target="_blank" rel="noopener noreferrer" className="bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-bold px-4 py-2.5 rounded-lg transition-colors flex items-center gap-1.5">
+                                    <span>Open program</span><i className="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                  </a>
+                                  <button onClick={() => { setHubTab("events"); setSearchQuery(prog.tags[0]); }} className="border border-slate-300 hover:border-[#18373E] text-slate-700 hover:text-[#18373E] text-xs font-bold px-4 py-2.5 rounded-lg transition-colors">
+                                    Find related events
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {hubTab === "resources" && (
+                        <div className="space-y-6 animate-fadeIn">
+                          <div className="bg-[#FAF8F5] border border-[#E7E2D6] rounded-xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="space-y-1">
+                              <span className="text-[10px] uppercase font-bold tracking-[0.15em] text-[#A71930]">CURATED UH COLLECTION</span>
+                              <h3 className="text-2xl font-serif font-bold text-[#18373E]">UH AI Resources</h3>
+                            </div>
+                            <p className="text-xs text-slate-600 max-w-md leading-relaxed md:text-right md:border-l border-slate-300 md:pl-5">
+                              Official guides, policies, licensed tools, and training from UH campuses and system offices. Each link opens the source maintained by its UH provider.
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {filteredResources.map(res => (
+                              <div key={res.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition flex flex-col h-full">
+                                <div className="flex justify-between items-start mb-4">
+                                  <div className="flex items-center space-x-2">
+                                    <CampusSeal campus="UH System" size={24} />
+                                    <span className="text-xs font-bold text-slate-800">UH System</span>
+                                  </div>
+                                  <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">{res.badge}</span>
+                                </div>
+                                <div className="space-y-1 flex-1">
+                                  <div className="text-[10px] uppercase font-extrabold tracking-wider text-slate-500">{res.category}</div>
+                                  <h4 className="text-xl font-serif font-bold text-[#18373E]"><a href={res.url} target="_blank" rel="noopener noreferrer" className="hover:text-[#0E4D56] transition-colors">{res.title}</a></h4>
+                                  <p className="text-xs text-slate-600 pt-1 leading-relaxed">
+                                    {res.id === 'res1' && "Compare AI tools using UH guidance for privacy, security, data handling, and appropriate institutional use."}
+                                    {res.id === 'res2' && "Learn about UH-provided Gemini access, account eligibility, and the protections that apply when using institutional accounts."}
+                                    {res.id === 'res3' && "Explore teaching-focused AI guidance, examples, recorded sessions, and practical resources gathered for UH educators."}
+                                    {res.id === 'res4' && "Review systemwide recommendations for thoughtful, transparent, and responsible use of AI in teaching and learning."}
+                                    {res.id === 'res5' && "A central resource for exploring, collaborating, and advancing the responsible use of AI across the UH System."}
+                                    {res.id === 'res6' && "A slide deck overview of AI policies and practices for the UH system."}
+                                    {res.id === 'res7' && "Dashboard visualizing the results of the recent Generative AI survey among UH faculty and staff."}
+                                  </p>
+                                </div>
+                                <div className="bg-[#FAF8F5] rounded-xl p-4 mt-5 mb-4 grid grid-cols-2 gap-4 text-xs">
+                                  <div><div className="text-[9px] uppercase font-bold text-slate-400">PROVIDED BY</div><div className="font-bold text-slate-800">{res.provider}</div></div>
+                                  <div><div className="text-[9px] uppercase font-bold text-slate-400">AUDIENCE</div><div className="font-bold text-slate-800">{res.audience}</div></div>
+                                  <div><div className="text-[9px] uppercase font-bold text-slate-400">ACCESS</div><div className="font-bold text-slate-800">{res.access}</div></div>
+                                  <div><div className="text-[9px] uppercase font-bold text-slate-400">VERIFIED</div><div className="font-bold text-slate-800">September 2026</div></div>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 mb-5">
+                                  {res.tags.map(tag => (<span key={tag} className="bg-emerald-50 text-emerald-800 border border-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full">{tag}</span>))}
+                                </div>
+                                <div className="flex items-center gap-3 mt-auto">
+                                  <a href={res.url} target="_blank" rel="noopener noreferrer" className="bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-bold px-4 py-2.5 rounded-lg transition-colors flex items-center gap-1.5">
+                                    <span>Open official resource</span><i className="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                  </a>
+                                  <button onClick={() => { setHubTab("events"); setSearchQuery(res.tags[0]); }} className="border border-slate-300 hover:border-[#18373E] text-slate-700 hover:text-[#18373E] text-xs font-bold px-4 py-2.5 rounded-lg transition-colors">
+                                    Find related PD
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </main>
+
+                <section aria-label="Planner Callout" className="bg-[#224E43] text-white py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-t border-[#183B32]">
+                  <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="space-y-2">
+                      <span className="text-[10px] uppercase font-extrabold tracking-[0.2em] text-[#9FD3C7] block">
+                        FOR INSTRUCTIONAL DESIGNERS & EVENT PLANNERS
+                      </span>
+                      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-white leading-tight">
+                        Have an opportunity to share?
+                      </h2>
+                      <p className="text-xs sm:text-sm text-[#D1E3DC] max-w-2xl font-normal leading-relaxed mt-2">
+                        Use Smart Intake to create the listing, protect the roster, connect a sync platform, and verify attendance.
+                      </p>
+                    </div>
+
+                    <div className="flex-shrink-0">
+                      <button
+                        onClick={() => requestPlannerAccess("intake")}
+                        className="bg-white hover:bg-[#0E4D56] text-[#132B30] hover:text-white text-sm font-bold px-6 py-3.5 rounded-lg shadow transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                      >
+                        <span>Open planner portal</span>
+                        <span aria-hidden="true">→</span>
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              </>
+            )}
+
+            {currentView === "planner" && (
+              <PlannerPortalView 
+                userRole={userRole}
+                events={events}
+                activePage={plannerActivePage}
+                setActivePage={setPlannerActivePage}
+                onPublishNewEvent={(newEvent) => {
+                  setEvents([newEvent, ...events]);
+                  setCurrentView("catalog");
+                  showToast(`Published "${newEvent.title}" to the live UH discovery catalog!`, "success");
+                }}
+                onReturnToCatalog={() => setCurrentView("catalog")}
+                showToast={showToast}
+              />
+            )}
+
+            {showPasswordModal && (
+              <div 
+                className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto"
+                role="dialog"
+                aria-modal="true"
+              >
+                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-300 relative my-8">
+                  <button
+                    onClick={() => setShowPasswordModal(false)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 text-lg"
+                  >
+                    ✕
+                  </button>
+
+                  <div className="flex items-center space-x-3 border-b border-slate-100 pb-3">
+                    <div className="w-10 h-10 rounded-full bg-[#18373E] text-[#E6B85E] flex items-center justify-center text-base">
+                      🔒
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">RESTRICTED ACCESS</span>
+                      <h3 className="text-lg font-bold font-serif text-slate-900 leading-tight">Planner Passkey Required</h3>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    This area is restricted to UH Event Planners and Instructional Designers. Please enter the passkey to access authoring tools.
+                  </p>
+
+                  <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-slate-800 uppercase tracking-wide">Passkey:</label>
+                      <input 
+                        type="password"
+                        value={passwordInput}
+                        onChange={(e) => {
+                          setPasswordInput(e.target.value);
+                          setPasswordError("");
+                        }}
+                        placeholder="Enter passkey (Hint: UHIDs)"
+                        className="w-full p-2.5 border border-slate-300 rounded-lg text-xs font-mono focus:border-[#0E4D56] focus:ring-1 focus:ring-[#0E4D56] outline-none"
+                        autoFocus
+                      />
+                      {passwordError && (
+                        <p className="text-[11px] text-red-600 font-semibold pt-1">{passwordError}</p>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-[11px] text-slate-600 flex items-center space-x-2">
+                      <i className="fa-solid fa-circle-info text-[#0E4D56]"></i>
+                      <span>Authorized passkey: <code className="font-bold text-slate-800">UHIDs</code></span>
+                    </div>
+
+                    <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswordModal(false)}
+                        className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-bold px-5 py-2 rounded-lg shadow transition-colors"
+                      >
+                        Unlock Workspace
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {selectedEventModal && (
+              <div 
+                className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto"
+                role="dialog"
+                aria-modal="true"
+              >
+                <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full p-6 space-y-5 border border-slate-300 relative my-8">
+                  <button
+                    onClick={() => setSelectedEventModal(null)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 text-lg"
+                  >
+                    ✕
+                  </button>
+
+                  <div className="flex items-start space-x-3">
+                    <CampusSeal campus={selectedEventModal.campus} size={42} />
+                    <div>
+                      <div className="flex items-center space-x-2 text-xs font-semibold text-emerald-800">
+                        <span>{selectedEventModal.campus} • {selectedEventModal.dept}</span>
+                      </div>
+                      <h3 className="text-xl font-bold font-serif text-slate-900 leading-tight">
+                        {selectedEventModal.title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {selectedEventModal.description}
+                  </p>
+
+                  {selectedEventModal.is_series && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-950 space-y-1">
+                      <div className="font-bold flex items-center gap-1">
+                        <i className="fa-solid fa-layer-group text-amber-800" aria-hidden="true"></i>
+                        Rule 1 Hierarchy: Parent Series Enrollment
+                      </div>
+                      <p className="text-[11px]">
+                        Registering once automatically enrolls you for all 4 meetings. Separate calendar invites will be generated for each session date.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="bg-[#FAF8F5] border border-slate-200 rounded-lg p-3.5 text-xs space-y-1.5 text-slate-700">
+                    <div className="flex items-center space-x-2 font-medium">
+                      <i className="fa-regular fa-calendar-check text-[#0E4D56]" aria-hidden="true"></i>
+                      <span>{selectedEventModal.dateFull}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 font-medium">
+                      <i className="fa-regular fa-clock text-[#0E4D56]" aria-hidden="true"></i>
+                      <span>{selectedEventModal.timeRange}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <i className="fa-solid fa-location-dot text-[#0E4D56]" aria-hidden="true"></i>
+                      <span>{selectedEventModal.location_details}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-800 uppercase tracking-wide">
+                      Select Attendance Modality & Reserve Seat:
+                    </label>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <label 
+                        className={`p-3 rounded-lg border text-xs cursor-pointer flex flex-col justify-between transition ${
+                          rsvpType === "in_person"
+                            ? 'border-[#0E4D56] bg-emerald-50/70 ring-2 ring-[#0E4D56]'
+                            : 'border-slate-200 hover:bg-slate-50 hover:border-[#0E4D56]'
+                        } ${selectedEventModal.capacity_in_person === 0 ? 'opacity-40 cursor-not-allowed bg-slate-50' : ''}`}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            name="attendance_choice"
+                            value="in_person"
+                            disabled={selectedEventModal.capacity_in_person === 0}
+                            checked={rsvpType === "in_person"}
+                            onChange={() => setRsvpType("in_person")}
+                            className="text-[#0E4D56] focus:ring-[#0E4D56]"
+                          />
+                          <span className="font-bold text-slate-900">In-Person Seat</span>
+                        </div>
+                        <span className="text-[11px] text-slate-500 mt-2">
+                          {selectedEventModal.capacity_in_person > 0
+                            ? `${selectedEventModal.capacity_in_person - selectedEventModal.registered_in_person} physical seats left`
+                            : "Unavailable for this event"}
+                        </span>
+                      </label>
+
+                      <label 
+                        className={`p-3 rounded-lg border text-xs cursor-pointer flex flex-col justify-between transition ${
+                          rsvpType === "virtual"
+                            ? 'border-[#0E4D56] bg-emerald-50/70 ring-2 ring-[#0E4D56]'
+                            : 'border-slate-200 hover:bg-slate-50 hover:border-[#0E4D56]'
+                        } ${selectedEventModal.capacity_virtual === 0 ? 'opacity-40 cursor-not-allowed bg-slate-50' : ''}`}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            name="attendance_choice"
+                            value="virtual"
+                            disabled={selectedEventModal.capacity_virtual === 0}
+                            checked={rsvpType === "virtual"}
+                            onChange={() => setRsvpType("virtual")}
+                            className="text-[#0E4D56] focus:ring-[#0E4D56]"
+                          />
+                          <span className="font-bold text-slate-900">Virtual / Zoom</span>
+                        </div>
+                        <span className="text-[11px] text-slate-500 mt-2">
+                          {selectedEventModal.capacity_virtual > 0
+                            ? `${selectedEventModal.capacity_virtual - selectedEventModal.registered_virtual} Zoom seats remaining`
+                            : "Open virtual access"}
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-xs text-blue-900">
+                    <div className="font-bold">Registering as: {userProfile.name} ({userProfile.email})</div>
+                    <p className="text-[11px] mt-0.5">
+                      Calendar invite (.ics) downloads automatically upon confirmation.
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end space-x-2 pt-2 border-t border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedEventModal(null)}
+                      className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRsvpConfirm(selectedEventModal)}
+                      className="bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-bold px-5 py-2 rounded shadow transition-colors flex items-center gap-1.5"
+                    >
+                      <i className="fa-solid fa-calendar-plus"></i>
+                      <span>Confirm RSVP & Download .ICS</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {showRsvpsDrawer && (
+              <div 
+                className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex justify-end"
+                role="dialog"
+                aria-modal="true"
+              >
+                <div className="bg-white w-full max-w-md h-full shadow-2xl p-6 flex flex-col justify-between overflow-y-auto border-l border-slate-200">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                      <div className="flex items-center space-x-2">
+                        <i className="fa-solid fa-calendar-check text-[#0E4D56]"></i>
+                        <h3 className="font-bold text-base text-slate-900 font-serif">My Registered Events</h3>
+                      </div>
+                      <button 
+                        onClick={() => setShowRsvpsDrawer(false)}
+                        className="text-slate-400 hover:text-slate-600 text-lg"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-slate-500">
+                      Events reserved with <code>{userProfile.email}</code>. 1-click calendar download or cancellation.
+                    </p>
+
+                    {myRsvps.length === 0 ? (
+                      <div className="text-center py-12 text-slate-400 text-xs">
+                        <p>No active registrations yet.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {myRsvps.map(rsvp => (
+                          <div key={rsvp.eventId} className="border border-slate-200 rounded-lg p-3 bg-slate-50 space-y-2 text-xs">
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-bold text-slate-900 text-sm leading-tight">
+                                {rsvp.eventTitle}
+                              </h4>
+                              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                                {rsvp.type}
+                              </span>
+                            </div>
+
+                            <div className="text-slate-600 text-[11px] space-y-0.5">
+                              <div><i className="fa-regular fa-calendar text-[#0E4D56] mr-1"></i> {rsvp.dateStr} • {rsvp.timeRange}</div>
+                              <div><i className="fa-solid fa-map-pin text-[#0E4D56] mr-1"></i> {rsvp.location}</div>
+                            </div>
+
+                            <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-[11px]">
+                              <button 
+                                onClick={() => {
+                                  const found = events.find(e => e.id === rsvp.eventId);
+                                  if (found) downloadIcsFile(found, rsvp.type);
+                                }}
+                                className="text-[#18373E] hover:text-[#0E4D56] font-semibold hover:underline flex items-center gap-1 transition-colors"
+                              >
+                                <i className="fa-solid fa-download"></i> Download .ICS
+                              </button>
+
+                              <button 
+                                onClick={() => handleCancelRsvp(rsvp.eventId)}
+                                className="text-red-700 hover:text-red-900 font-semibold transition-colors"
+                              >
+                                Cancel RSVP
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-200">
+                    <button
+                      onClick={() => setShowRsvpsDrawer(false)}
+                      className="w-full bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-bold py-2 rounded shadow transition-colors"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {toast && (
+              <div className="fixed bottom-5 right-5 z-50 bg-[#0E252A] text-white px-4 py-3 rounded-lg shadow-2xl border border-[#C5A566] flex items-center space-x-3 text-xs max-w-sm">
+                <i className={`fa-solid ${toast.type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-circle-info text-amber-300'}`}></i>
+                <span className="font-medium">{toast.message}</span>
+              </div>
+            )}
+
+            <footer role="contentinfo" className="bg-[#0E252A] text-slate-400 text-xs py-10 px-4 sm:px-6 lg:px-8 border-t border-[#18373E] mt-auto">
+              <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                  <div className="font-bold text-white text-base font-serif">UH Professional Development Hub</div>
+                  <div className="text-xs text-slate-400 mt-0.5">Connecting learning across our island campuses.</div>
+                </div>
+
+                <div>
+                  <div className="text-xs font-bold text-slate-200">Questions or technical problems?</div>
+                  <div className="text-xs text-white font-bold mt-0.5">
+                    Email <a href="mailto:uhoic@hawaii.edu" className="underline hover:text-[#9FD3C7] transition-colors">uhoic@hawaii.edu</a>
+                  </div>
+                </div>
+
+                <div className="md:text-right space-y-1">
+                  <div className="text-xs text-slate-300">Phase 1 prototype · WCAG 2.1 AA–informed</div>
+                  <div>
+                    <button
+                      onClick={() => requestPlannerAccess("sources")}
+                      className="text-xs text-white font-bold underline hover:text-[#9FD3C7] transition-colors cursor-pointer"
+                    >
+                      Event sources +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </footer>
+          </div>
+        );
+      }
+
+      function PlannerPortalView({ userRole, events, activePage, setActivePage, onPublishNewEvent, onReturnToCatalog, showToast }) {
+        const [intakeStep, setIntakeStep] = React.useState(1);
+        const [showRawSourceInStep2, setShowRawSourceInStep2] = React.useState(false);
+        const [rawFlyerText, setRawFlyerText] = React.useState(
+          "Title: Assessment for Learning Institute\nDescription: A four-part series for designing transparent, authentic assessments with actionable feedback. Click here to download syllabus.\nDate: September 11, 2026\nTime: 9:00 AM - 12:00 PM HST\nHost campus: Leeward CC\nHost unit: Faculty Senate PD\nFormat: In-person (on campus)\nLocation/access: Learning Commons, Room 108\nCapacity: 25\nAudience: UH faculty, instructors, and staff\nTopics: Assessment, Active Learning\nEvent page: View event page: Assessment for Learning Institute"
+        );
+        const [isParsing, setIsParsing] = React.useState(false);
+        const [parsedResult, setParsedResult] = React.useState(null);
+
+        const applyTemplate = (type) => {
+          if (type === 'hybrid') {
+            setRawFlyerText(
+              "Title: Generative AI for Work: Build Your First Gemini Gem\nDescription: Create a reusable AI collaborator for a real teaching, research, or administrative workflow. Click here to review prerequisites.\nDate: October 14, 2026\nTime: 1:00 PM - 2:30 PM HST\nHost campus: UH Mānoa\nHost unit: Center for Teaching Excellence\nFormat: Hybrid (online & in-person)\nLocation/access: Kuykendall 106 Events Room + Zoom\nCapacity: 20 in-person, 50 virtual\nAudience: UH faculty, instructors, and staff\nTopics: Generative AI, Productivity\nEvent page: View event page: Gemini Gems Workshop"
+            );
+            showToast("Loaded Hybrid Workshop template.", "info");
+          } else if (type === 'webinar') {
+            setRawFlyerText(
+              "Title: Digital Accessibility & Screen Reader Basics\nDescription: Hands-on audit workshop for faculty to test online course materials. Click here to download screen reader guide.\nDate: October 21, 2026\nTime: 10:00 AM - 11:30 AM HST\nHost campus: UH System\nHost unit: UH Online Innovation Center (UHOIC)\nFormat: Online sync (live)\nLocation/access: Zoom - link provided after RSVP\nCapacity: 100 virtual\nAudience: UH faculty, instructors, and staff\nTopics: Accessibility / ADA, Online Teaching\nEvent page: View event page: Accessibility Basics"
+            );
+            showToast("Loaded Live Webinar template.", "info");
+          } else if (type === 'selfpaced') {
+            setRawFlyerText(
+              "Title: Lamakū LMS Essentials for New Instructors\nDescription: Asynchronous modules covering gradebook setup, assignment rubrics, and discussion facilitation.\nDate: Open Enrollment 2026\nTime: Self-Paced (approx 3 hours)\nHost campus: UH System\nHost unit: ITS / Lamakū Support\nFormat: Online async (self-paced)\nLocation/access: Lamakū Course Site\nCapacity: Unlimited\nAudience: UH faculty, instructors, and staff\nTopics: Lamakū / LMS, Online Teaching\nEvent page: View event page: Lamakū Essentials"
+            );
+            showToast("Loaded Self-Paced Course template.", "info");
+          }
+        };
+
+        const handleExtract = async () => {
+          if (!rawFlyerText.trim()) {
+            showToast("Please enter or paste flyer text first.", "info");
+            return;
+          }
+
+          setIsParsing(true);
+          try {
+            const systemPrompt = `You are the AI Intake Assistant for the University of Hawaii PD Platform. Extract structured event JSON and audit ADA compliance. If the text mentions a series or institute, extract a child_sessions array. Return JSON only.`;
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: rawFlyerText }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: { responseMimeType: "application/json" }
+              })
+            });
+
+            const data = await response.json();
+            const textContent = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textContent) {
+              const res = JSON.parse(textContent);
+              setParsedResult(res);
+              setIntakeStep(2);
+              showToast("AI extraction complete! Reviewing extracted fields.", "success");
+            } else {
+              throw new Error("Empty AI response");
+            }
+          } catch (e) {
+            const hasClickHere = /click here|read more|link below/i.test(rawFlyerText);
+            const isFourPart = /four-part|series|institute/i.test(rawFlyerText);
+
+            const fallback = {
+              title: rawFlyerText.includes("Title:") ? rawFlyerText.split("Title:")[1].split("\n")[0].trim() : "Assessment for Learning Institute",
+              description: rawFlyerText.includes("Description:") ? rawFlyerText.split("Description:")[1].split("\n")[0].trim() : "A four-part series for designing transparent, authentic assessments with actionable feedback. Click here to download syllabus.",
+              campus: rawFlyerText.includes("Host campus:") ? rawFlyerText.split("Host campus:")[1].split("\n")[0].trim() : "Leeward CC",
+              dept: rawFlyerText.includes("Host unit:") ? rawFlyerText.split("Host unit:")[1].split("\n")[0].trim() : "Faculty Senate PD",
+              dateFull: "September 11, 2026",
+              dateNum: "11",
+              dayName: "FRI",
+              month: "September 2026",
+              monthKey: "2026-09",
+              timeRange: "9:00 AM - 12:00 PM HST",
+              delivery_mode: "f2f",
+              deliveryLabel: "In-person (on campus)",
+              location_details: "Learning Commons, Room 108",
+              zoom_url: "",
+              capacity_in_person: 25,
+              capacity_virtual: 0,
+              pedagogy_tags: ["Assessment", "Active Learning"],
+              is_series: isFourPart,
+              child_sessions: isFourPart ? [
+                { num: 1, title: "Part 1: Foundations of Transparent Assessment", date: "Sep 11, 2026", time: "9:00 AM - 12:00 PM HST", location: "Room 108" },
+                { num: 2, title: "Part 2: Formative Checkpoints & Peer Feedback", date: "Sep 18, 2026", time: "9:00 AM - 12:00 PM HST", location: "Room 108" },
+                { num: 3, title: "Part 3: Authentic Rubrics in Lamakū", date: "Sep 25, 2026", time: "9:00 AM - 12:00 PM HST", location: "Room 108" },
+                { num: 4, title: "Part 4: Assessment Showcase & Iteration", date: "Oct 2, 2026", time: "9:00 AM - 12:00 PM HST", location: "Room 108" }
+              ] : [],
+              ada_audit: {
+                score: hasClickHere ? 65 : 98,
+                flags: hasClickHere 
+                  ? ["Non-descriptive link copy detected: 'Click here to download syllabus'. Replace with descriptive hyperlink text."]
+                  : ["Passed: Content adheres to WCAG 2.1 AA text standards."]
+              }
+            };
+            setParsedResult(fallback);
+            setIntakeStep(2);
+            showToast("Details extracted! Step 2 active.", "success");
+          } finally {
+            setIsParsing(false);
+          }
+        };
+
+        const handleAutoRepairAda = () => {
+          if (!parsedResult) return;
+          const cleanedDesc = parsedResult.description.replace(/click here to download syllabus/gi, "Download the Course Assessment & Rubric Syllabus (PDF)");
+          setParsedResult({
+            ...parsedResult,
+            description: cleanedDesc,
+            ada_audit: {
+              score: 98,
+              flags: ["All link text now descriptive. Adheres to WCAG 2.1 AA."]
+            }
+          });
+          showToast("Replaced non-descriptive link text with accessible copy!", "success");
+        };
+
+        const handlePublish = () => {
+          if (!parsedResult) return;
+          const newEvt = {
+            id: `evt-owned-${Date.now()}`,
+            ...parsedResult,
+            registered_in_person: 0,
+            registered_virtual: 0,
+            pageLink: `View event page: ${parsedResult.title}`,
+            is_systemwide: true,
+            openScope: `Open to ${parsedResult.campus}`
+          };
+          onPublishNewEvent(newEvt);
+        };
+
+        return (
+          <div className="flex-1 flex flex-col md:flex-row bg-[#FAF8F5]">
+            <nav role="navigation" aria-label="Planner portal sidebar" className="w-full md:w-64 bg-[#0B252E] text-white flex-shrink-0 flex flex-col justify-between border-r border-[#143946] min-h-[calc(100vh-80px)]">
+              <div className="p-4 space-y-6">
+                <div className="flex items-center space-x-3 pb-4 border-b border-slate-700/60">
+                  <CampusSeal campus="UH System" size={40} />
+                  <div>
+                    <div className="font-bold text-base font-serif text-white leading-tight">PD Hub</div>
+                    <div className="text-[9px] uppercase tracking-widest text-[#C5A566] font-bold">CONTRIBUTOR PORTAL</div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3 py-1">
+                    EVERYDAY
+                  </div>
+                  {[
+                    { id: 'overview', label: 'Overview', icon: 'fa-house' },
+                    { id: 'intake', label: 'AI Smart Intake', icon: 'fa-sparkles', badge: 'New' },
+                    { id: 'events', label: 'Events', icon: 'fa-table-list' },
+                    { id: 'analytics', label: 'Analytics', icon: 'fa-chart-simple' },
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActivePage(item.id)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition ${
+                        activePage === item.id 
+                          ? 'bg-[#183F4C] text-white font-bold border-l-2 border-[#C5A566]' 
+                          : 'text-slate-300 hover:bg-[#0E4D56] hover:text-white'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <i className={`fa-solid ${item.icon} text-xs text-slate-400`}></i>
+                        <span>{item.label}</span>
+                      </span>
+                      {item.badge && (
+                        <span className="bg-[#C5A566] text-slate-900 text-[9px] font-bold px-1.5 py-0.2 rounded">
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-1 pt-2">
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3 py-1">
+                    ADVANCED
+                  </div>
+                  {[
+                    { id: 'attendance', label: 'Attendance', icon: 'fa-rotate' },
+                    { id: 'sources', label: 'Website Sources', icon: 'fa-bolt' },
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActivePage(item.id)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2.5 transition ${
+                        activePage === item.id 
+                          ? 'bg-[#183F4C] text-white font-bold border-l-2 border-[#C5A566]' 
+                          : 'text-slate-300 hover:bg-[#0E4D56] hover:text-white'
+                      }`}
+                    >
+                      <i className={`fa-solid ${item.icon} text-xs text-slate-400`}></i>
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-slate-700/60 space-y-3 bg-[#081B22]">
+                <div className="flex items-start space-x-2.5 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 mt-1 flex-shrink-0"></span>
+                  <div className="space-y-0.5 leading-tight">
+                    <div className="font-bold text-white">Approved contributor</div>
+                    <div className="text-[11px] text-slate-400">UH Online Innovation Center (UHOIC) · UH System</div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={onReturnToCatalog}
+                  className="w-full text-left text-xs text-[#E6B85E] hover:underline font-semibold flex items-center gap-1.5 pt-1 transition-colors"
+                >
+                  <i className="fa-solid fa-arrow-left text-[10px]"></i>
+                  <span>Return to public site</span>
+                </button>
+              </div>
+            </nav>
+
+            <main role="region" aria-label="Planner view content" className="flex-1 p-6 lg:p-8 overflow-y-auto space-y-6">
+              <div className="bg-[#FAF4E5] border border-[#E7D6A6] text-amber-950 rounded-lg p-3 text-xs flex justify-between items-center shadow-xs">
+                <div className="flex items-center space-x-2 font-medium">
+                  <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center text-[10px]">
+                    <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                  </span>
+                  <span>Prototype access status: Full Contributor and ID permissions granted. Passkey verified (`UHIDs`).</span>
+                </div>
+                <span className="text-[11px] text-amber-900/80 underline cursor-pointer hover:text-[#0E4D56]">
+                  Production details
+                </span>
+              </div>
+
+              {activePage === "overview" && (
+                <div className="space-y-6">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">
+                      PLANNER WORKSPACE
+                    </span>
+                    <h2 className="text-3xl font-serif font-medium text-slate-900 leading-tight">
+                      Planner overview
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      See what needs attention, continue unfinished work, and move directly to the task that matters.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-1">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">UPCOMING OWNED EVENTS</span>
+                      <div className="text-4xl font-serif font-bold text-slate-900">3</div>
+                      <div className="text-xs text-slate-500">Next: Sep 25, 2026</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-1">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">ACTIVE REGISTRATIONS</span>
+                      <div className="text-4xl font-serif font-bold text-slate-900">86</div>
+                      <div className="text-xs text-slate-500">Authorized unit records</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-1">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">NEEDS ATTENTION</span>
+                      <div className="text-4xl font-serif font-bold text-amber-800">5</div>
+                      <div className="text-xs text-slate-500">Capacity, source, or sync review</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div className="lg:col-span-8 bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
+                      <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                        <div>
+                          <h3 className="font-bold text-slate-900 text-sm">Action queue</h3>
+                          <p className="text-xs text-slate-500">Prioritized from records inside your approved unit scope.</p>
+                        </div>
+                        <span className="bg-amber-100 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full">
+                          5 items
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex justify-between items-center text-xs">
+                          <div className="flex items-center space-x-3">
+                            <span className="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0">
+                              ⚡
+                            </span>
+                            <div>
+                              <div className="font-bold text-slate-900">2 source changes need review</div>
+                              <div className="text-slate-500">Critical fields remain unchanged until a planner decides.</div>
+                            </div>
+                          </div>
+                          <button onClick={() => setActivePage("sources")} className="text-[#18373E] hover:text-[#0E4D56] font-bold hover:underline transition-colors">
+                            Review →
+                          </button>
+                        </div>
+
+                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex justify-between items-center text-xs">
+                          <div className="flex items-center space-x-3">
+                            <span className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0">
+                              ↻
+                            </span>
+                            <div>
+                              <div className="font-bold text-slate-900">Attendance sync is not complete</div>
+                              <div className="text-slate-500">3 live or hybrid events in your unit.</div>
+                            </div>
+                          </div>
+                          <button onClick={() => setActivePage("attendance")} className="text-[#18373E] hover:text-[#0E4D56] font-bold hover:underline transition-colors">
+                            Open sync →
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="lg:col-span-4 bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
+                      <h3 className="font-bold font-serif text-slate-900 text-sm">Quick actions</h3>
+                      
+                      <button
+                        onClick={() => setActivePage("intake")}
+                        className="w-full p-3 rounded-lg bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-semibold flex items-center space-x-3 text-left transition-colors"
+                      >
+                        <i className="fa-solid fa-plus text-sm text-[#E6B85E]"></i>
+                        <div>
+                          <div className="font-bold">Create a new event</div>
+                          <div className="text-[11px] text-slate-300">Start with source text or a template</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setActivePage("analytics")}
+                        className="w-full p-3 rounded-lg border border-slate-200 text-slate-800 hover:border-[#0E4D56] hover:text-[#0E4D56] text-xs font-semibold flex items-center space-x-3 text-left hover:bg-slate-50 transition-colors"
+                      >
+                        <i className="fa-solid fa-chart-column text-slate-500"></i>
+                        <div>
+                          <div className="font-bold">Check registration demand</div>
+                          <div className="text-[11px] text-slate-500">Choose one or more events</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setActivePage("sources")}
+                        className="w-full p-3 rounded-lg border border-slate-200 text-slate-800 hover:border-[#0E4D56] hover:text-[#0E4D56] text-xs font-semibold flex items-center space-x-3 text-left hover:bg-slate-50 transition-colors"
+                      >
+                        <i className="fa-solid fa-bolt text-slate-500"></i>
+                        <div>
+                          <div className="font-bold">Review event sources</div>
+                          <div className="text-[11px] text-slate-500">Health, provenance, and changes</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activePage === "intake" && (
+                <div className="space-y-6">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">
+                      CREATE AN OPPORTUNITY
+                    </span>
+                    <h2 className="text-3xl font-serif font-medium text-slate-900 leading-tight">
+                      AI Smart Intake
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Fill in the labeled source form or paste what you already have. The intake assistant extracts the details, flags uncertainty, and requires your review before publication.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-4 text-xs font-semibold border-b border-slate-200 pb-3">
+                    <button
+                      onClick={() => setIntakeStep(1)}
+                      className={`flex items-center space-x-2 ${intakeStep === 1 ? 'text-[#0E4D56] font-bold' : 'text-slate-400'}`}
+                    >
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${intakeStep === 1 ? 'bg-[#0E4D56] text-white' : 'bg-slate-200 text-slate-600'}`}>
+                        1
+                      </span>
+                      <span>Paste source</span>
+                    </button>
+                    <span className="text-slate-300">———</span>
+
+                    <button
+                      onClick={() => { if (parsedResult) setIntakeStep(2); }}
+                      disabled={!parsedResult}
+                      className={`flex items-center space-x-2 ${intakeStep === 2 ? 'text-[#0E4D56] font-bold' : 'text-slate-400 disabled:opacity-50'}`}
+                    >
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${intakeStep === 2 ? 'bg-[#0E4D56] text-white' : 'bg-slate-200 text-slate-600'}`}>
+                        2
+                      </span>
+                      <span>Review details</span>
+                    </button>
+                    <span className="text-slate-300">———</span>
+
+                    <span className={`flex items-center space-x-2 ${intakeStep === 3 ? 'text-[#0E4D56] font-bold' : 'text-slate-400'}`}>
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${intakeStep === 3 ? 'bg-[#0E4D56] text-white' : 'bg-slate-200 text-slate-600'}`}>
+                        3
+                      </span>
+                      <span>Publish</span>
+                    </span>
+                  </div>
+
+                  {intakeStep === 1 && (
+                    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-5">
+                      <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">
+                            ✦
+                          </span>
+                          <div>
+                            <h3 className="font-bold text-slate-900 text-sm">Enter or paste your event details</h3>
+                            <p className="text-xs text-slate-500">Fill in the labeled form, choose a reusable example, or clear it and paste existing flyer text.</p>
+                          </div>
+                        </div>
+                        <span className="bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded">
+                          Review required
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                          START FROM A REUSABLE PATTERN
+                        </span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => applyTemplate('hybrid')}
+                            className="p-3 border border-slate-200 hover:border-[#0E4D56] rounded-lg text-left text-xs space-y-1 bg-slate-50 hover:bg-slate-100 transition"
+                          >
+                            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                              <span className="text-emerald-700">+</span> Hybrid workshop
+                            </div>
+                            <div className="text-[11px] text-slate-500">Separate room and virtual capacities</div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => applyTemplate('webinar')}
+                            className="p-3 border border-slate-200 hover:border-[#0E4D56] rounded-lg text-left text-xs space-y-1 bg-slate-50 hover:bg-slate-100 transition"
+                          >
+                            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                              <span className="text-emerald-700">+</span> Live webinar
+                            </div>
+                            <div className="text-[11px] text-slate-500">Virtual access and attendance report</div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => applyTemplate('selfpaced')}
+                            className="p-3 border border-slate-200 hover:border-[#0E4D56] rounded-lg text-left text-xs space-y-1 bg-slate-50 hover:bg-slate-100 transition"
+                          >
+                            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                              <span className="text-emerald-700">+</span> Self-paced course
+                            </div>
+                            <div className="text-[11px] text-slate-500">Availability window without seat counts</div>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <label htmlFor="source-fill-form" className="font-bold text-slate-700 uppercase text-[10px]">
+                            SOURCE TEXT FILL-IN FORM
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setRawFlyerText("Title:\nDescription:\nDate:\nTime:\nHost campus:\nHost unit:\nFormat:\nLocation/access:\nCapacity:\nAudience: UH faculty, instructors, and staff\nTopics:\nEvent page:")}
+                            className="text-[11px] text-slate-500 hover:text-[#0E4D56] underline"
+                          >
+                            Restore empty labels
+                          </button>
+                        </div>
+
+                        <textarea
+                          id="source-fill-form"
+                          rows="10"
+                          value={rawFlyerText}
+                          onChange={(e) => setRawFlyerText(e.target.value)}
+                          className="w-full text-xs font-mono p-3.5 border border-slate-300 rounded-lg bg-[#FAF8F5] focus:bg-white focus:ring-2 focus:ring-[#0E4D56] leading-relaxed"
+                        ></textarea>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                        <button
+                          type="button"
+                          onClick={() => setRawFlyerText("")}
+                          className="px-3.5 py-1.5 border border-slate-300 rounded text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                        >
+                          Clear
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleExtract}
+                          disabled={isParsing}
+                          className="bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-bold px-6 py-2.5 rounded-lg shadow-xs flex items-center gap-2 transition-colors"
+                        >
+                          {isParsing ? (
+                            <>
+                              <i className="fa-solid fa-spinner fa-spin"></i>
+                              <span>Extracting details...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Extract event details</span>
+                              <span aria-hidden="true">→</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {intakeStep === 2 && parsedResult && (
+                    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-6">
+                      <div className="flex flex-wrap justify-between items-center border-b border-slate-200 pb-3 gap-2">
+                        <div>
+                          <h3 className="font-bold text-slate-900 text-base font-serif">
+                            Step 2: Review Extracted Details & ADA Compliance
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Check auto-parsed metadata and verify compliance before publishing to the UH system feed.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowRawSourceInStep2(!showRawSourceInStep2)}
+                            className="text-xs text-slate-600 hover:text-[#0E4D56] underline transition-colors"
+                          >
+                            {showRawSourceInStep2 ? "Hide original source text" : "View original source text"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIntakeStep(1)}
+                            className="text-xs text-[#18373E] hover:text-[#0E4D56] font-bold hover:underline transition-colors"
+                          >
+                            ← Back to edit source
+                          </button>
+                        </div>
+                      </div>
+
+                      {showRawSourceInStep2 && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] font-mono text-slate-700 whitespace-pre-wrap max-h-40 overflow-y-auto">
+                          {rawFlyerText}
+                        </div>
+                      )}
+
+                      <div className={`p-4 rounded-xl border space-y-2 ${
+                        parsedResult.ada_audit.score < 80 
+                          ? 'bg-amber-50 border-amber-300 text-amber-950' 
+                          : 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                      }`}>
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center space-x-2">
+                            <i className={`fa-solid ${parsedResult.ada_audit.score < 80 ? 'fa-triangle-exclamation text-amber-600' : 'fa-circle-check text-emerald-600'}`}></i>
+                            <strong className="text-xs">
+                              ADA / WCAG 2.1 AA Audit Score: {parsedResult.ada_audit.score}/100
+                            </strong>
+                          </div>
+
+                          {parsedResult.ada_audit.score < 80 && (
+                            <button
+                              type="button"
+                              onClick={handleAutoRepairAda}
+                              className="bg-amber-800 hover:bg-[#0E4D56] text-white text-[11px] font-bold px-3 py-1 rounded shadow-xs flex items-center gap-1.5 transition-colors"
+                            >
+                              <i className="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+                              <span>Auto-Repair Link Copy</span>
+                            </button>
+                          )}
+                        </div>
+
+                        <ul className="list-disc pl-5 text-xs space-y-0.5">
+                          {parsedResult.ada_audit.flags.map((flg, idx) => (
+                            <li key={idx}>{flg}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        {/* Core Details Segment */}
+                        <div className="md:col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4">
+                          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Core Information</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div className="md:col-span-2">
+                              <label className="block font-bold text-slate-700 mb-1">Event Title</label>
+                              <input
+                                type="text"
+                                value={parsedResult.title}
+                                onChange={(e) => setParsedResult({ ...parsedResult, title: e.target.value })}
+                                className="w-full p-2 border rounded border-slate-300 bg-white focus:border-[#0E4D56] outline-none"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="block font-bold text-slate-700 mb-1">Host Campus & Unit</label>
+                              <input
+                                type="text"
+                                value={`${parsedResult.campus} · ${parsedResult.dept}`}
+                                onChange={(e) => setParsedResult({ ...parsedResult, dept: e.target.value })}
+                                className="w-full p-2 border rounded border-slate-300 bg-white focus:border-[#0E4D56] outline-none"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="block font-bold text-slate-700 mb-1">Description</label>
+                              <textarea
+                                rows="3"
+                                value={parsedResult.description}
+                                onChange={(e) => setParsedResult({ ...parsedResult, description: e.target.value })}
+                                className="w-full p-2 border rounded border-slate-300 bg-white leading-relaxed focus:border-[#0E4D56] outline-none"
+                              ></textarea>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Logistics Segment */}
+                        <div className="md:col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4">
+                          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Logistics & Access</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Date & Time</label>
+                              <input
+                                type="text"
+                                value={`${parsedResult.dateFull} • ${parsedResult.timeRange}`}
+                                onChange={(e) => setParsedResult({ ...parsedResult, timeRange: e.target.value })}
+                                className="w-full p-2 border rounded border-slate-300 bg-white focus:border-[#0E4D56] outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">Location Details</label>
+                              <input
+                                type="text"
+                                value={parsedResult.location_details}
+                                onChange={(e) => setParsedResult({ ...parsedResult, location_details: e.target.value })}
+                                className="w-full p-2 border rounded border-slate-300 bg-white focus:border-[#0E4D56] outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {parsedResult.is_series && (
+                        <div className="bg-[#FAF8F5] border border-slate-200 rounded-xl p-4 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                              <i className="fa-solid fa-layer-group text-[#0E4D56]"></i>
+                              Rule 1 Compliance: Recurring Series Child Sessions ({parsedResult.child_sessions?.length || 4} sequence dates)
+                            </span>
+                            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded">
+                              Single RSVP for full series
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            {(parsedResult.child_sessions || []).map((sess, idx) => (
+                              <div key={idx} className="bg-white border border-slate-200 p-2.5 rounded-lg flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                  <div className="font-bold text-slate-800">{sess.title}</div>
+                                  <div className="text-[11px] text-slate-500">{sess.date} · {sess.time}</div>
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-mono">Part {sess.num}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex justify-end space-x-3 pt-3 border-t border-slate-200">
+                        <button
+                          type="button"
+                          onClick={() => setIntakeStep(1)}
+                          className="px-4 py-2 border border-slate-300 rounded text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          ← Back
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePublish}
+                          className="bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-bold px-6 py-2 rounded shadow-xs flex items-center gap-1.5 transition-colors"
+                        >
+                          <i className="fa-solid fa-upload text-[11px]"></i>
+                          <span>Publish to Discovery Catalog</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activePage === "events" && (
+                <div className="space-y-6">
+                  <div className="flex flex-wrap justify-between items-end border-b border-slate-200 pb-4 gap-4">
+                    <div>
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">
+                        DEPARTMENT-OWNED RECORDS
+                      </span>
+                      <h2 className="text-3xl font-serif font-medium text-slate-900 leading-tight">
+                        Manage events
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Edit, duplicate, reassign, cancel, restore, and audit opportunities without breaking registrations.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setActivePage("intake")}
+                      className="bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-bold px-4 py-2 rounded-lg shadow-xs transition-colors"
+                    >
+                      + New event
+                    </button>
+                  </div>
+
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
+                          <th className="p-3.5">EVENT</th>
+                          <th className="p-3.5">OWNER UNIT</th>
+                          <th className="p-3.5">DATE</th>
+                          <th className="p-3.5">AVAILABILITY</th>
+                          <th className="p-3.5">STATUS</th>
+                          <th className="p-3.5 text-right">ACTIONS</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {events.slice(0, 4).map(evt => (
+                          <tr key={evt.id} className="hover:bg-slate-50">
+                            <td className="p-3.5 space-y-0.5">
+                              <div className="font-bold text-slate-900">{evt.title}</div>
+                              <div className="text-[11px] text-slate-500">{evt.deliveryLabel}</div>
+                            </td>
+                            <td className="p-3.5 text-slate-700">{evt.dept}</td>
+                            <td className="p-3.5 text-slate-700">{evt.dateFull}</td>
+                            <td className="p-3.5 text-slate-700">Open registration</td>
+                            <td className="p-3.5">
+                              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">
+                                Published
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-right space-x-2">
+                              {/* Consolidated View Roster Action */}
+                              <button 
+                                onClick={() => showToast(`Exporting registration roster for "${evt.title}"...`, "success")}
+                                className="px-2.5 py-1 rounded border border-slate-300 hover:bg-[#0E4D56] hover:text-white hover:border-[#0E4D56] font-semibold transition-colors flex items-center gap-1.5 inline-flex"
+                              >
+                                <i className="fa-solid fa-users text-[10px]"></i> View Roster
+                              </button>
+                              <button 
+                                onClick={() => showToast(`Opening editor for "${evt.title}"`, "info")}
+                                className="px-2.5 py-1 rounded border border-slate-300 hover:bg-slate-100 font-semibold transition-colors inline-flex"
+                              >
+                                Edit
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activePage === "analytics" && (
+                <div className="space-y-6">
+                  <div className="border-b border-slate-200 pb-4">
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">
+                      ALL EVENTS • UH ONLINE INNOVATION CENTER (UHOIC) VIEW
+                    </span>
+                    <h2 className="text-3xl font-serif font-medium text-slate-900 leading-tight">
+                      Analytics & ROI
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Move from authorized unit results to event-level registration, attendance, campus reach, and permitted registrant details.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
+                      <span className="text-[11px] font-bold uppercase text-slate-400">REGISTRATIONS</span>
+                      <div className="text-3xl font-serif font-bold text-slate-900 mt-1">86</div>
+                      <div className="text-xs text-slate-500 mt-1">Across 4 selected events</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
+                      <span className="text-[11px] font-bold uppercase text-slate-400">VERIFIED ATTENDANCE</span>
+                      <div className="text-3xl font-serif font-bold text-[#0E4D56] mt-1">71</div>
+                      <div className="text-xs text-slate-500 mt-1">83% of past-event registrants</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
+                      <span className="text-[11px] font-bold uppercase text-slate-400">CAPACITY UTILIZED</span>
+                      <div className="text-3xl font-serif font-bold text-purple-900 mt-1">86%</div>
+                      <div className="text-xs text-slate-500 mt-1">86 registrations · 100 limit</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
+                      <span className="text-[11px] font-bold uppercase text-slate-400">CURRENT WAITLIST</span>
+                      <div className="text-3xl font-serif font-bold text-amber-800 mt-1">0</div>
+                      <div className="text-xs text-slate-500 mt-1">No one currently waiting</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activePage === "attendance" && (
+                <div className="space-y-6">
+                  <div className="border-b border-slate-200 pb-4">
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">
+                      AUTHORIZED EVENT DATA
+                    </span>
+                    <h2 className="text-3xl font-serif font-medium text-slate-900 leading-tight">
+                      Attendance sync
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Link a Zoom, Teams, or Meet session; normalize its report; and review uncertain matches before publishing attendance analytics.
+                    </p>
+                  </div>
+
+                  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
+                    <h3 className="font-bold text-sm text-slate-900">1. Link the event and report</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                      <div className="md:col-span-3">
+                        <label className="block font-bold text-slate-700 mb-1">Authorized Event</label>
+                        <select className="w-full p-2 border rounded border-slate-300 bg-white focus:border-[#0E4D56] outline-none">
+                          <option>Innovation Playground: Fall '26 Updates: Gemini, NotebookLM, Vids</option>
+                          <option>AI for Work: Build Your First Gemini Gem</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Provider</label>
+                        <select className="w-full p-2 border rounded border-slate-300 bg-white focus:border-[#0E4D56] outline-none">
+                          <option>Zoom</option>
+                          <option>Microsoft Teams</option>
+                          <option>Google Meet</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Meeting ID / UUID</label>
+                        <input type="text" placeholder="771 2398 412" className="w-full p-2 border rounded border-slate-300 focus:border-[#0E4D56] outline-none" />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Attendance Threshold (%)</label>
+                        <input type="number" defaultValue="50" className="w-full p-2 border rounded border-slate-300 focus:border-[#0E4D56] outline-none" />
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-3 pt-2">
+                      <button 
+                        onClick={() => showToast("Loaded sample attendance data for verification.", "info")}
+                        className="bg-[#18373E] hover:bg-[#0E4D56] text-white text-xs font-bold px-4 py-2 rounded transition-colors"
+                      >
+                        Load representative sample
+                      </button>
+                      <button 
+                        onClick={() => showToast("CSV parser ready for Zoom attendee report.", "info")}
+                        className="border border-slate-300 hover:border-[#0E4D56] hover:text-[#0E4D56] text-slate-700 text-xs font-semibold px-4 py-2 rounded hover:bg-slate-50 transition-colors"
+                      >
+                        Import Provider CSV
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activePage === "sources" && (
+                <div className="space-y-6">
+                  <div className="border-b border-slate-200 pb-4">
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">
+                      GOVERNED DISCOVERY SOURCES
+                    </span>
+                    <h2 className="text-3xl font-serif font-medium text-slate-900 leading-tight">
+                      Event Sources
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Manage where opportunities are discovered, preserve organizer provenance, and review changes before they reach faculty.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+                      <span className="text-[11px] font-bold uppercase text-slate-400">SOURCES IN SCOPE</span>
+                      <div className="text-3xl font-serif font-bold text-slate-900 mt-1">2</div>
+                      <div className="text-xs text-slate-500 mt-1">UH System · approved unit</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+                      <span className="text-[11px] font-bold uppercase text-slate-400">HEALTHY</span>
+                      <div className="text-3xl font-serif font-bold text-emerald-700 mt-1">1</div>
+                      <div className="text-xs text-slate-500 mt-1">Ready for scheduled monitoring</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+                      <span className="text-[11px] font-bold uppercase text-slate-400">PENDING REVIEWS</span>
+                      <div className="text-3xl font-serif font-bold text-amber-800 mt-1">2</div>
+                      <div className="text-xs text-slate-500 mt-1">Field-level decisions required</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+</body>
+</html>
